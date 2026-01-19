@@ -1,0 +1,1 @@
+# DRANDEE                                                                                                     A calm, impact-first digital platform. Build for creators, learners, and meaningful discovery.                                                                                                     Status: Initial setup phase.         
