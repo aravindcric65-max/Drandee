@@ -1,0 +1,539 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #0a0a0a;
+  color: #ffffff;
+  font-family: "Inter", Arial, sans-serif;
+  line-height: 1.4;
+}
+
+h1, h2 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+h3 {
+  font-size: 15px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.page {
+  padding: 14px;
+  padding-bottom: 80px;
+}
+
+button {
+  border: none;
+  background: #1c1c1c;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.follow-btn {
+  margin-top: 10px;
+  background: #ffffff;
+  color: #000;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+}
+
+video {
+  width: 100%;
+  border-radius: 12px;
+  background: #000;
+}
+
+.card {
+  margin-bottom: 14px;
+}
+
+/* ===== FEED ===== */
+.feed-page {
+  padding: 12px;
+  padding-bottom: 80px;
+}
+
+.feed-card {
+  margin-bottom: 18px;
+  position: relative;
+}
+
+.feed-info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.feed-actions {
+  margin-top: 6px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.feed-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: #222;
+  opacity: 0.85;
+  z-index: 2;
+}
+
+/* ===== PROFILE ===== */
+.profile-page {
+  padding: 16px;
+  padding-bottom: 80px;
+}
+
+.profile-header {
+  text-align: center;
+}
+
+.profile-pic {
+  width: 70px;
+  height: 70px;
+  margin: auto;
+  border-radius: 50%;
+  background: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.profile-rank {
+  margin-top: 6px;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 16px;
+}
+
+.profile-stats div {
+  text-align: center;
+}
+
+.profile-stats strong {
+  display: block;
+  font-size: 18px;
+}
+
+.profile-posts {
+  margin-top: 16px;
+}
+
+.profile-posts video {
+  margin-bottom: 10px;
+}
+
+/* ===== SPOTLIGHT ===== */
+.spotlight-page {
+  padding: 12px;
+  padding-bottom: 80px;
+}
+
+.spotlight-section {
+  margin-bottom: 24px;
+}
+
+.spotlight-card {
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.spotlight-info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.spotlight-respects {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.spotlight-rank-number {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #7F77DD;
+  background: rgba(0,0,0,0.6);
+  padding: 2px 7px;
+  border-radius: 8px;
+  z-index: 2;
+}
+
+.spotlight-creator {
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.spotlight-label {
+  font-size: 11px;
+  color: #7F77DD;
+  margin-top: 2px;
+}
+
+.spotlight-no-video {
+  width: 100%;
+  height: 120px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: rgba(255,255,255,0.3);
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #0a0a0a;
+  border-top: 0.5px solid #1a1a1a;
+  z-index: 9999;
+}
+
+.nav-item {
+  text-decoration: none;
+  color: #777;
+}
+
+.nav-item.active {
+  color: #fff;
+}
+
+.nav-icon {
+  font-size: 20px;
+}
+
+.app-layout {
+  padding-bottom: 60px;
+}
+
+.main-content {
+  min-height: 100vh;
+}
+
+/* ===== EXPERIENCE ===== */
+.experience-page {
+  padding: 14px;
+  padding-bottom: 80px;
+}
+
+.exp-section {
+  margin-bottom: 20px;
+}
+
+.exp-card {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: #1a1a1a;
+}
+
+.exp-list {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 14px;
+}
+
+/* ===== SEARCH ===== */
+.search-box {
+  margin-bottom: 14px;
+}
+
+.search-input {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* ===== SCROLL ===== */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 10px;
+}
+
+/* ===== UTILITY ===== */
+.text-center { text-align: center; }
+.mt-10 { margin-top: 10px; }
+.mb-10 { margin-bottom: 10px; }
+.ml-10 { margin-left: 10px; }
+
+input[type="file"] {
+  margin-top: 10px;
+}
+
+textarea {
+  font-size: 14px;
+  min-height: 80px;
+  resize: none;
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #1a1a1a;
+  color: #fff;
+  outline: none;
+}
+
+select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background: #1a1a1a;
+  color: white;
+  border: none;
+}
+
+/* ===== VIDEO OVERLAY ===== */
+.video-preview {
+  position: relative;
+}
+
+.overlay {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  text-align: center;
+  width: 90%;
+  z-index: 2;
+}
+
+.overlay.top { top: 10%; }
+.overlay.center {
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.overlay.bottom { bottom: 10%; }
+
+/* ===== RESPECT ANIMATION ===== */
+.respect-effect {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  opacity: 1;
+  z-index: 10;
+  animation: respectFade 1s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes respectFade {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -60px) scale(1.1); /* ✅ px fix */
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -80px) scale(0.9); /* ✅ px fix */
+  }
+}
+
+/* ===== BADGE ===== */
+.badge {
+  margin-top: 8px;
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  background: #222;
+  color: #fff;
+  opacity: 0.9;
+}
+
+/* ===== NOTE CARD ===== */
+.note-card {
+  background: #1a1a1a;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+/* ═══════════════════════════════════════════
+   PROFILE PAGE — production styles
+═══════════════════════════════════════════ */
+
+/* Spinner (used in Profile loaders, EditProfileModal) */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* Toast slide-in */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Profile page safe-area padding (iOS notch) */
+.profile-safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Smooth press feedback for interactive cells */
+.profile-tap-target {
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  transition: opacity 0.12s ease, transform 0.1s ease;
+}
+.profile-tap-target:active {
+  opacity: 0.7;
+  transform: scale(0.97);
+}
+
+/* Post grid cell hover — desktop */
+@media (hover: hover) {
+  .profile-grid-cell:hover {
+    opacity: 0.85;
+  }
+}
+
+/* Scrollbar hide for modal sheets */
+.profile-sheet-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.profile-sheet-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Follower / following row press */
+.profile-list-row {
+  transition: background 0.1s ease;
+}
+.profile-list-row:active {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Star friend pulse glow */
+@keyframes starPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+  50%       { box-shadow: 0 0 0 6px rgba(255, 215, 0, 0.18); }
+}
+.star-friend-glow {
+  animation: starPulse 2.4s ease infinite;
+}
+
+/* Edit profile field focus ring */
+.profile-input:focus {
+  border-color: rgba(127, 119, 221, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(127, 119, 221, 0.12);
+  outline: none;
+}
+
+/* QR code card glow */
+.qr-card-glow {
+  box-shadow: 0 0 40px rgba(127, 119, 221, 0.18);
+}
+
+/* Platform share button hover */
+@media (hover: hover) {
+  .share-plat-btn:hover {
+    filter: brightness(1.15);
+    transform: translateY(-2px);
+  }
+}
+.share-plat-btn {
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+/* Niche chip selected state ripple */
+@keyframes chipSelect {
+  0%   { transform: scale(0.95); }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.niche-chip-selected {
+  animation: chipSelect 0.2s ease;
+}
+
+/* Profile header fade-in on load */
+@keyframes profileFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.profile-hero-enter {
+  animation: profileFadeIn 0.35s ease both;
+}
+
+/* Skeleton loading pulse */
+.skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    #141414 25%,
+    #1e1e1e 50%,
+    #141414 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}

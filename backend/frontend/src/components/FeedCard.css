@@ -1,0 +1,79 @@
+.feed-card {
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 12px;
+    background: #111;
+    color: #fff;
+    border-radius: 14px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.feed-video {
+    width: 100px;
+    border-radius: 12px;
+    background: #000;
+}
+
+.identity-box {
+    margin-top: 14px;
+}
+
+.creator-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+
+}
+
+.creator-name {
+    font-size: 16px;
+}
+
+.level-badge {
+    font-size: 12px;
+    padding: 4px 8px;
+    background: #2a2a2a;
+    border-radius: 6px;
+    color: #bbb;
+}
+
+.spotlight-badge {
+    font-size: 12px;
+    color: #ffd700;
+}
+
+.editor-row {
+    font-size: 13px;
+    margin-top: 6px;
+    opacity: 0.75;
+}
+
+.caption {
+    font-size: 14px;
+    margin-top: 8px;
+    opacity: 0.9;
+    line-height: 1.4;
+}
+
+.actions {
+    margin-top: 14px;
+}
+
+.respect-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    padding: 8px 16px;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.respect-btn:hover {
+    background: #222;
+}
+.respect-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
