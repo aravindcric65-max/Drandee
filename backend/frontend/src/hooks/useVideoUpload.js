@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { parseApiResponse } from '../utils/apiHelper';
 
 const useVideoUpload = () => {
   const [uploadState, setUploadState] = useState('idle');
@@ -29,8 +30,7 @@ const useVideoUpload = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          },
         body: JSON.stringify({
           fileName: file.name,
           fileSize: file.size,
@@ -38,11 +38,7 @@ const useVideoUpload = () => {
         }),
       });
 
-      if (!signatureResponse.ok) {
-        throw new Error('Failed to get upload signature');
-      }
-
-      const { signature, uploadParams } = await signatureResponse.json();
+      const { signature, uploadParams } = await parseApiResponse(signatureResponse, "Upload Signature");
 
       setUploadState('uploading');
       setProgress(0);
@@ -59,11 +55,7 @@ const useVideoUpload = () => {
         body: formData,
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const uploadResult = await uploadResponse.json();
+      const uploadResult = await parseApiResponse(uploadResponse, "ImageKit Upload");
       setMediaId(uploadResult.fileId);
       setUploadState('uploaded');
       setProgress(100);
@@ -74,8 +66,7 @@ const useVideoUpload = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          },
         body: JSON.stringify({
           mediaId: uploadResult.fileId,
           videoUrl: uploadResult.url,
@@ -83,9 +74,7 @@ const useVideoUpload = () => {
         }),
       });
 
-      if (!metadataResponse.ok) {
-        throw new Error('Failed to save metadata');
-      }
+      await parseApiResponse(metadataResponse, "Save Metadata");
 
       setUploadState('completed');
       return { success: true, mediaId: uploadResult.fileId, url: uploadResult.url };

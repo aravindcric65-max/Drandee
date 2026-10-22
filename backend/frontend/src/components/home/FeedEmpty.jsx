@@ -1,7 +1,9 @@
 import React, { useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Compass, Users, MapPin, Sparkles } from 'lucide-react';
 
 export const FeedEmpty = ({ mode = 'for_you', onExplore }) => {
+  const navigate = useNavigate();
   const content = useMemo(() => ({
     for_you: {
       icon: <Compass className="w-10 h-10 sm:w-12 sm:h-12 text-[#7F77DD]" strokeWidth={1.5} />,
@@ -35,16 +37,16 @@ export const FeedEmpty = ({ mode = 'for_you', onExplore }) => {
       // Default navigation based on mode
       switch (mode) {
         case 'following':
-          window.location.href = '/discover';
+          navigate('/discover');
           break;
         case 'local':
-          window.location.href = '/explore?tab=global';
+          navigate('/explore?tab=global');
           break;
         default:
-          window.location.href = '/explore';
+          navigate('/explore');
       }
     }
-  }, [onExplore, mode]);
+  }, [onExplore, mode, navigate]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -55,13 +57,13 @@ export const FeedEmpty = ({ mode = 'for_you', onExplore }) => {
 
   return (
     <div 
-      className="w-full h-full flex-1 flex flex-col justify-center items-center px-6 sm:px-8 py-12 sm:py-16 text-center bg-gradient-to-b from-white/[0.02] to-transparent"
+      className="w-full h-full flex-1 flex flex-col justify-center items-center px-6 sm:px-8 py-12 sm:py-16 text-center bg-transparent"
       role="status"
       aria-label="No content available"
     >
       {/* Icon Container */}
       <div 
-        className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${bgGradient} flex items-center justify-center mb-6 sm:mb-8 border border-white/10 shadow-lg`}
+        className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${bgGradient} flex items-center justify-center mb-6 sm:mb-8 border border-[#E8E8EC] shadow-sm`}
         aria-hidden="true"
       >
         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#7F77DD]/10 flex items-center justify-center">
@@ -70,12 +72,12 @@ export const FeedEmpty = ({ mode = 'for_you', onExplore }) => {
       </div>
       
       {/* Title */}
-      <h2 className="text-white text-[18px] sm:text-[20px] md:text-[22px] font-bold mb-2.5 sm:mb-3 tracking-tight leading-tight">
+      <h2 className="text-[#111111] text-[18px] sm:text-[20px] md:text-[22px] font-bold mb-2.5 sm:mb-3 tracking-tight leading-tight">
         {title}
       </h2>
       
       {/* Description */}
-      <p className="text-white/50 mb-8 sm:mb-10 max-w-[260px] sm:max-w-[280px] text-[13px] sm:text-[14px] md:text-[15px] leading-relaxed">
+      <p className="text-[#666666] mb-8 sm:mb-10 max-w-[260px] sm:max-w-[280px] text-[13px] sm:text-[14px] md:text-[15px] leading-relaxed">
         {text}
       </p>
       
@@ -97,8 +99,8 @@ export const FeedEmpty = ({ mode = 'for_you', onExplore }) => {
       </button>
       
       {/* Secondary hint */}
-      <p className="text-white/30 text-[11px] sm:text-[12px] mt-6 sm:mt-8 font-medium">
-        {mode === 'for_you' && 'Tip: Follow creators you like to see more content'}
+      <p className="text-[#8A8A8F] text-[11px] sm:text-[12px] mt-6 sm:mt-8 font-medium">
+        {mode === 'for_you' && 'Tip: Follow creators you enjoy to see more content'}
         {mode === 'following' && 'Tip: Browse trending creators to get started'}
         {mode === 'local' && 'Tip: Enable location to see nearby content'}
       </p>

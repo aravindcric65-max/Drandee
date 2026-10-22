@@ -87,12 +87,12 @@ const styles = {
   heading: {
     fontSize: "24px",
     fontWeight: "700",
-    color: "#fff",
+    color: "#111111",
     margin: "0 0 8px 0",
   },
   subheading: {
     fontSize: "16px",
-    color: "rgba(255,255,255,0.6)",
+    color: "#666666",
     margin: "0 0 24px 0",
   },
   form: {
@@ -108,11 +108,11 @@ const styles = {
   textarea: {
     width: "100%",
     minHeight: "120px",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "#F7F7F9",
+    border: "1px solid #E8E8EC",
     borderRadius: "16px",
     padding: "16px",
-    color: "#fff",
+    color: "#111111",
     fontSize: "15px",
     lineHeight: "1.5",
     resize: "vertical",
@@ -125,7 +125,7 @@ const styles = {
     bottom: "16px",
     right: "16px",
     fontSize: "12px",
-    color: "rgba(255,255,255,0.3)",
+    color: "#8A8A8F",
     pointerEvents: "none",
   },
   submitBtn: {

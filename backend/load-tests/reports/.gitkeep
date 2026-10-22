@@ -1,0 +1,4 @@
+Artillery JSON and HTML reports are stored here (gitignored).
+
+Run: artillery report <filename>.json
+to generate the HTML file in this directory.

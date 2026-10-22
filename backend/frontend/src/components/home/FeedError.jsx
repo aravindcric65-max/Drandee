@@ -17,7 +17,7 @@ export const FeedError = ({ onRetry }) => {
 
   return (
     <div 
-      className="w-full min-h-[60vh] sm:min-h-[70vh] flex flex-col justify-center items-center px-6 sm:px-8 py-12 sm:py-16 text-center bg-gradient-to-b from-red-500/[0.02] to-transparent"
+      className="w-full min-h-[60vh] sm:min-h-[70vh] flex flex-col justify-center items-center px-6 sm:px-8 py-12 sm:py-16 text-center bg-transparent"
       role="alert"
       aria-label="Error loading feed"
     >
@@ -34,12 +34,12 @@ export const FeedError = ({ onRetry }) => {
       </div>
       
       {/* Title */}
-      <h2 className="text-white text-[16px] sm:text-[17px] md:text-[18px] font-semibold mb-2 sm:mb-2.5 tracking-tight leading-tight">
+      <h2 className="text-[#111111] text-[16px] sm:text-[17px] md:text-[18px] font-semibold mb-2 sm:mb-2.5 tracking-tight leading-tight">
         Couldn't load your feed
       </h2>
       
       {/* Description */}
-      <p className="text-white/40 mb-6 sm:mb-8 max-w-[260px] sm:max-w-[280px] text-[12px] sm:text-[13px] leading-relaxed">
+      <p className="text-[#666666] mb-6 sm:mb-8 max-w-[260px] sm:max-w-[280px] text-[12px] sm:text-[13px] leading-relaxed">
         Something went wrong. Don't worry, we're on it. Try again!
       </p>
       
@@ -47,7 +47,7 @@ export const FeedError = ({ onRetry }) => {
       <button 
         onClick={handleRetry}
         onKeyDown={handleKeyDown}
-        className="group px-6 sm:px-7 py-2.5 sm:py-3 rounded-full bg-white/5 border border-white/10 text-white/70 font-semibold text-[13px] sm:text-[14px] hover:bg-white/10 hover:border-white/15 hover:text-white transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/20 min-h-[40px] min-w-[100px]"
+        className="group px-6 sm:px-7 py-2.5 sm:py-3 rounded-full bg-[#E8E8EC] border border-[#E8E8EC] text-[#111111] font-semibold text-[13px] sm:text-[14px] hover:bg-black/10 transition-all active:scale-95 focus:outline-none min-h-[40px] min-w-[100px]"
         aria-label="Retry loading feed"
       >
         <span className="flex items-center gap-2">
@@ -61,7 +61,7 @@ export const FeedError = ({ onRetry }) => {
       </button>
       
       {/* Helper Text */}
-      <p className="text-white/30 text-[10px] sm:text-[11px] mt-5 sm:mt-6 font-medium">
+      <p className="text-[#8A8A8F] text-[10px] sm:text-[11px] mt-5 sm:mt-6 font-medium">
         If this keeps happening, check your connection
       </p>
     </div>

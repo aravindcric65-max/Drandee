@@ -7,10 +7,10 @@ import { getRank } from '../../utils/rankSystem';
 import { getBadge } from '../../utils/badgeSystem';
 import DefaultAvatar from '../DefaultAvatar';
 
-export const ViewersModal = ({ isOpen, onClose, postId }) => {
+export const ViewersModal = ({ isOpen, onClose, postId, dark = false }) => {
   const [viewers, setViewers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { token, followUser, unfollowUser, user: currentUser } = useContext(UserContext) || {};
+  const { followUser, unfollowUser, user: currentUser } = useContext(UserContext) || {};
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,10 +18,12 @@ export const ViewersModal = ({ isOpen, onClose, postId }) => {
       setLoading(true);
       try {
         const res = await fetch(`/api/engagement/viewers/${postId}?limit=20`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+          });
+        if (res.status === 403 || res.status === 404) {
+          setViewers([]);
+          setLoading(false);
+          return;
+        }
         const data = await res.json();
         if (data.success) {
           setViewers(data.data.viewers || []);
@@ -36,7 +38,7 @@ export const ViewersModal = ({ isOpen, onClose, postId }) => {
     if (isOpen && postId) {
       fetchViewers();
     }
-  }, [isOpen, postId, token]);
+  }, [isOpen, postId]);
 
   const handleFollowToggle = async (e, targetUserId, isFollowing) => {
     e.stopPropagation();
@@ -74,22 +76,22 @@ export const ViewersModal = ({ isOpen, onClose, postId }) => {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
-            className="fixed inset-x-0 bottom-0 z-50 h-[60vh] rounded-t-3xl bg-[#09090e] border-t border-white/10 flex flex-col shadow-2xl"
+            className={`fixed inset-x-0 bottom-0 z-50 h-[60vh] rounded-t-3xl ${dark ? 'bg-[#1a1a1a] border-t border-[#252525]' : 'bg-[#F7F7F9] border-t border-[#E8E8EC]'} flex flex-col shadow-2xl`}
           >
             {/* Handle Bar */}
             <div className="w-full flex justify-center pt-3 pb-1" onPointerDown={(e) => e.preventDefault()} onClick={onClose} style={{ touchAction: 'none' }}>
-              <div className="w-12 h-1.5 rounded-full bg-white/20" />
+              <div className={`w-12 h-1.5 rounded-full ${dark ? 'bg-white/20' : 'bg-black/20'}`} />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-white/5">
+            <div className={`flex items-center justify-between px-5 py-3 border-b ${dark ? 'border-[#252525]' : 'border-[#E8E8EC]'}`}>
               <div className="flex items-center gap-2">
                 <Eye size={18} className="text-[#7F77DD]" />
-                <h3 className="text-lg font-bold text-white">Views</h3>
+                <h3 className={`text-lg font-bold ${dark ? 'text-white' : 'text-[#111111]'}`}>Views</h3>
               </div>
               <button 
                 onClick={onClose}
-                className="p-2 rounded-full bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                className={`p-2 rounded-full ${dark ? 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white' : 'bg-black/5 text-[#8A8A8F] hover:bg-black/10 hover:text-[#111111]'} transition-colors`}
               >
                 <X size={18} />
               </button>
@@ -101,10 +103,10 @@ export const ViewersModal = ({ isOpen, onClose, postId }) => {
                 <div className="flex flex-col gap-4">
                   {[1, 2, 3, 4].map(i => (
                     <div key={i} className="flex items-center gap-3 animate-pulse">
-                      <div className="w-10 h-10 rounded-full bg-white/10" />
+                      <div className={`w-10 h-10 rounded-full ${dark ? 'bg-white/10' : 'bg-black/10'}`} />
                       <div className="flex-1 space-y-2">
-                        <div className="h-3 w-24 bg-white/10 rounded" />
-                        <div className="h-2 w-16 bg-white/5 rounded" />
+                        <div className={`h-3 w-24 ${dark ? 'bg-white/10' : 'bg-black/10'} rounded`} />
+                        <div className={`h-2 w-16 ${dark ? 'bg-white/5' : 'bg-black/5'} rounded`} />
                       </div>
                     </div>
                   ))}
@@ -120,7 +122,7 @@ export const ViewersModal = ({ isOpen, onClose, postId }) => {
                     return (
                       <div 
                         key={viewer.id} 
-                        className="flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
+                        className={`flex items-center justify-between p-2 rounded-xl ${dark ? 'hover:bg-white/5' : 'hover:bg-black/5'} transition-colors cursor-pointer`}
                         onClick={() => {
                           onClose();
                           navigate(`/profile/${viewer.id}`);
@@ -134,12 +136,12 @@ export const ViewersModal = ({ isOpen, onClose, postId }) => {
                             className="flex-shrink-0"
                           />
                           <div className="flex flex-col">
-                            <span className="text-sm font-semibold text-white/90">
+                            <span className={`text-sm font-semibold ${dark ? 'text-white' : 'text-[#111111]'}`}>
                               {viewer.displayName || viewer.username}
                             </span>
                             <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                               {rankTitle && (
-                                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-white/70">
+                                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-black/5 text-[#666666]">
                                   {rankTitle}
                                 </span>
                               )}
@@ -157,7 +159,7 @@ export const ViewersModal = ({ isOpen, onClose, postId }) => {
                             onClick={(e) => handleFollowToggle(e, viewer.id, viewer.isFollowing)}
                             className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${
                               viewer.isFollowing 
-                                ? 'bg-white/10 text-white/90 hover:bg-white/20' 
+                                ? 'bg-transparent text-[#666666] border border-[#E8E8EC] hover:bg-black/5' 
                                 : 'bg-[#7F77DD] text-white hover:bg-[#6e66cc]'
                             }`}
                           >
@@ -169,7 +171,7 @@ export const ViewersModal = ({ isOpen, onClose, postId }) => {
                   })}
                 </div>
               ) : (
-                <div className="h-full flex flex-col items-center justify-center text-white/50">
+                <div className={`h-full flex flex-col items-center justify-center ${dark ? 'text-white/40' : 'text-[#8A8A8F]'}`}>
                   <Eye size={40} className="mb-3 opacity-20" />
                   <p className="text-sm">No views yet</p>
                 </div>

@@ -15,18 +15,61 @@ const ActionBtn = ({ icon, count, active, activeColor, onPress, isRespect }) => 
     setTimeout(() => setPop(false), isRespect ? 380 : 220);
     onPress();
   };
+  
+  const buttonColor = active && activeColor ? activeColor : '#7F77DD';
+  
+  const borderClass = active 
+    ? `border-2 bg-opacity-10` 
+    : `border hover:border-opacity-60`;
+  
+  const transformStyle = pop 
+    ? (isRespect ? 'scale(1.32) rotate(-6deg)' : 'scale(1.22)') 
+    : 'scale(1)';
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer' }} onClick={handle}>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.6))',
-        transform: pop ? (isRespect ? 'scale(1.32) rotate(-6deg)' : 'scale(1.22)') : 'scale(1)',
-        transition: pop ? 'transform 0.14s cubic-bezier(0.34,1.56,0.64,1)' : 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-      }}>
+    <div 
+      onClick={handle} 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        gap: 4, 
+        cursor: 'pointer',
+        userSelect: 'none',
+        color: buttonColor
+      }}
+    >
+      <div 
+        className={borderClass}
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderColor: buttonColor,
+          borderWidth: active ? '2px' : '1px',
+          borderStyle: 'solid',
+          backgroundColor: active ? `${buttonColor}20` : 'transparent',
+          transform: transformStyle,
+          filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.3))',
+          transition: pop 
+            ? 'transform 0.14s cubic-bezier(0.34,1.56,0.64,1)' 
+            : 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      >
         {icon}
       </div>
-      {count !== undefined && (
-        <span style={{ fontSize: 12, fontWeight: 600, textShadow: '0 1px 3px rgba(0,0,0,0.8)', color: active ? (activeColor || '#fff') : 'rgba(255,255,255,0.85)' }}>
+      {count && (
+        <span 
+          style={{ 
+            color: buttonColor,
+            fontWeight: 600,
+            fontSize: '13px',
+            filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' 
+          }}
+        >
           {count}
         </span>
       )}

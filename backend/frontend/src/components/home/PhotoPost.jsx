@@ -146,7 +146,7 @@ export const PhotoPost = ({ post, isActive, index, interactionProps }) => {
 
       {/* Caption directly below content */}
       <div className="mt-4 mb-1 px-1">
-        <PostInfo post={post} />
+        <PostInfo post={post} onTagClick={interactionProps?.onTagClick} />
       </div>
 
       {/* Action Bar */}

@@ -43,6 +43,10 @@ const Notifications = () => {
   } = useContext(UserContext) || {};
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (markAllRead) markAllRead();
+  }, [markAllRead]);
   const [followState, setFollowState] = useState({});
   const [requestedState, setRequestedState] = useState({});
   const [followLoading, setFollowLoading] = useState({});
@@ -80,8 +84,13 @@ const Notifications = () => {
 
   const handleTap = (n) => {
     markRead && markRead(n.id);
-    if (n.actorId) navigate(`/profile/${n.actorId}`);
-    else if (n.postId) navigate("/reels");
+    if (n.actorId && n.type !== 'respect' && n.type !== 'comment') {
+      navigate(`/profile/${n.actorId}`);
+    } else if (n.postId) {
+      navigate(`/reels?postId=${n.postId}`);
+    } else if (n.actorId) {
+      navigate(`/profile/${n.actorId}`);
+    }
   };
 
   const handleFollow = async (e, n) => {
@@ -92,8 +101,6 @@ const Notifications = () => {
     setFollowLoading((p) => ({ ...p, [id]: true }));
     
     try {
-      await new Promise(r => setTimeout(r, 400)); // Mock API delay
-      
       if (isFollowing(id)) {
         setFollowState((p) => ({ ...p, [id]: false }));
         unfollowUser && unfollowUser(id);
@@ -172,7 +179,7 @@ const Notifications = () => {
           { label: "Followers", val: totalFollowers, icon: <FMetric /> },
           { label: "Saved", val: totalSaves, icon: <SMetric /> },
         ].map((m, i) => (
-          <div key={m.label} style={{ ...S.metricBox, borderRight: i < 3 ? "0.5px solid #111" : "none" }}>
+          <div key={m.label} style={{ ...S.metricBox, borderRight: i < 3 ? "0.5px solid #E8E8EC" : "none" }}>
             {unreadCount > 0 && <div style={S.redDot} />}
             <div style={{ ...S.metricIcon, background: "rgba(127,119,221,0.15)" }}>{m.icon}</div>
             <span style={{ ...S.metricVal, color: "#AFA9EC", textShadow: "0 0 10px rgba(127,119,221,0.5)" }}>

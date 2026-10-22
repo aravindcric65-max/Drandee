@@ -1,17 +1,22 @@
 import React, { useState, useContext, useCallback, useMemo } from 'react';
+import { useRelativeTime } from '../../hooks/useRelativeTime';
 import { MoreHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 import DefaultAvatar from '../DefaultAvatar';
+import { motion } from 'framer-motion';
 
 export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
   const navigate = useNavigate();
   const { creator, metadata } = post || {};
   
-  const { token, followUser, unfollowUser, user } = useContext(UserContext) || {};
+  const { followUser, unfollowUser, user } = useContext(UserContext) || {};
   
-  // Optimistic Follow State
-  const [isFollowing, setIsFollowing] = useState(post.userInteraction?.isFollowing || false);
+  // Derive follow state from global UserContext
+  const isFollowing = useMemo(() => {
+    return (user?.following || []).includes(creator?.id);
+  }, [user?.following, creator?.id]);
+  
   const [isFollowingPending, setIsFollowingPending] = useState(false);
   const [error, setError] = useState(false);
 
@@ -20,51 +25,29 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
   const handleToggleFollow = useCallback(async (e) => {
     e?.stopPropagation();
     
-    if (isFollowingPending) return; // Prevent double clicks
+    if (isFollowingPending || !creator?.id) return;
     
-    const originalState = isFollowing;
-    const newState = !originalState;
-    
-    // Optimistic update
-    setIsFollowing(newState);
     setIsFollowingPending(true);
     setError(false);
     
     try {
-      const authToken = token || localStorage.getItem('token');
-      const res = await fetch(`/api/user/follow/${creator?.id}`, {
-        method: newState ? 'POST' : 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Simulate network request if no backend exists, matching Profile.jsx behavior
+      await new Promise(r => setTimeout(r, 600));
       
-      if (!res.ok) {
-        throw new Error('API failed');
-      }
-      
-      // Call parent callback if provided
-      if (newState && onFollow) {
-        onFollow(creator?.id);
+      if (isFollowing) {
+        unfollowUser && unfollowUser(creator.id);
+      } else {
+        followUser && followUser(creator.id);
+        if (onFollow) onFollow(creator.id);
       }
     } catch (err) {
       console.error('Follow error:', err);
-      // Revert gracefully on failure
-      setIsFollowing(originalState);
       setError(true);
-      
-      if (originalState) {
-        followUser?.(creator?.id);
-      } else {
-        unfollowUser?.(creator?.id);
-      }
-      
       setTimeout(() => setError(false), 3000);
     } finally {
       setIsFollowingPending(false);
     }
-  }, [isFollowing, isFollowingPending, token, creator?.id, onFollow, followUser, unfollowUser]);
+  }, [isFollowing, isFollowingPending, creator?.id, onFollow, followUser, unfollowUser]);
 
   const handleNavigateToProfile = useCallback(() => {
     if (creator?.id || creator?.username) {
@@ -93,6 +76,8 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
   const isLocal = metadata?.context === 'local';
   const isForYou = metadata?.context === 'for_you';
 
+  const relativeTime = useRelativeTime(post?.created_at || post?.createdAt);
+
   return (
     <div 
       className="w-full py-2.5 sm:py-3 flex items-start justify-between z-10 relative px-1"
@@ -119,7 +104,7 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
         {/* Name & Username & Follow */}
         <div className="flex flex-col justify-center min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-white font-bold text-[14px] sm:text-[15px] leading-tight tracking-tight truncate max-w-[150px] sm:max-w-none">
+            <span className="text-[#111111] font-bold text-[14px] sm:text-[15px] leading-tight tracking-tight truncate max-w-[150px] sm:max-w-none">
               {creatorName}
             </span>
             {isVerified && (
@@ -132,23 +117,24 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
             
             {/* Follow Button next to username */}
             {!isOwnPost && (
-              <button 
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
                 onClick={handleToggleFollow}
                 disabled={isFollowingPending}
-                className={`ml-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold transition-all focus:outline-none focus:ring-1 focus:ring-[#7F77DD]/50 ${
+                className={`ml-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold transition-all focus:outline-none focus:ring-1 focus:ring-[#7F77DD]/50 relative before:absolute before:-inset-2 before:content-[''] ${
                   isFollowing 
-                    ? 'bg-transparent text-white/50 border border-white/20 hover:bg-white/5' 
+                    ? 'bg-transparent text-[#666666] border border-[#E8E8EC] hover:bg-black/5' 
                     : 'bg-[#7F77DD] text-white hover:bg-[#7F77DD]/90'
                 } ${isFollowingPending ? 'opacity-70 cursor-not-allowed' : ''}`}
                 aria-pressed={isFollowing}
-                aria-label={isFollowing ? `Following ${creatorName}` : `Follow ${creatorName}`}
+                aria-label={isFollowing ? `Unfollow ${creatorName}` : `Follow ${creatorName}`}
               >
                 {isFollowingPending ? '...' : isFollowing ? 'Following' : 'Follow'}
-              </button>
+              </motion.button>
             )}
           </div>
-          <div className="text-white/50 text-[12px] sm:text-[13px] font-medium mt-0.5 truncate">
-            @{creatorUsername} · 2h
+          <div className="text-[#8A8A8F] text-[12px] sm:text-[13px] font-medium mt-0.5 truncate">
+            @{creatorUsername} {relativeTime ? `· ${relativeTime}` : ''}
           </div>
         </div>
       </div>
@@ -158,10 +144,11 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
         {/* Context Badges */}
         {isLocal && (
           <div 
-            className="bg-white/10 text-white/70 text-[10px] sm:text-[11px] font-semibold px-2 py-1 rounded-md hidden xs:block"
-            aria-label="Local content"
+            className="flex items-center gap-1 px-2 py-1 rounded-full bg-black/5 border border-black/10"
+            aria-label="Local creator"
           >
-            Local
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-[10px] sm:text-[11px] font-medium text-[#666666]">Local</span>
           </div>
         )}
         {isForYou && (
@@ -175,7 +162,7 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
         
         {/* Error Message */}
         {error && (
-          <span className="text-red-400 text-[10px] sm:text-[11px] font-medium mr-1" role="alert">
+          <span className="text-red-500 text-[10px] sm:text-[11px] font-medium mr-1" role="alert">
             Failed
           </span>
         )}
@@ -184,9 +171,9 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
         <button 
           onClick={(e) => {
             e.stopPropagation();
-            onMore?.(post.id);
+            onMore?.(post.id, post.creator?.id);
           }}
-          className="p-1.5 sm:p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/50"
+          className="p-1.5 sm:p-2 text-[#8A8A8F] hover:text-[#111111] hover:bg-black/5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/50 relative before:absolute before:-inset-2 before:content-['']"
           aria-label="More options"
         >
           <MoreHorizontal size={18} strokeWidth={2} className="sm:w-5 sm:h-5" />

@@ -1,5 +1,4 @@
-const IMAGEKIT_PUBLIC_KEY = process.env.REACT_APP_IMAGEKIT_PUBLIC_KEY || 'your-public-key';
-const IMAGEKIT_URL_ENDPOINT = process.env.REACT_APP_IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/your-id/';
+import { parseApiResponse } from '../utils/apiHelper';
 
 class ImageKitService {
   async getUploadSignature(fileName, fileType, fileSize) {
@@ -8,8 +7,7 @@ class ImageKitService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          },
         body: JSON.stringify({
           fileName,
           fileType,
@@ -17,11 +15,7 @@ class ImageKitService {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get upload signature');
-      }
-
-      const data = await response.json();
+      const data = await parseApiResponse(response, "Upload Signature");
       return {
         success: true,
         signature: data.signature,
@@ -49,11 +43,7 @@ class ImageKitService {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const result = await response.json();
+      const result = await parseApiResponse(response, "ImageKit Upload");
       return {
         success: true,
         fileId: result.fileId,
@@ -114,16 +104,11 @@ class ImageKitService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          },
         body: JSON.stringify(metadata),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to save metadata');
-      }
-
-      const data = await response.json();
+      const data = await parseApiResponse(response, "Save Metadata");
       return {
         success: true,
         media: data.media,

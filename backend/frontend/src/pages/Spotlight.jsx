@@ -90,10 +90,9 @@ export default function Spotlight() {
     setFeedbackState("submitting");
     
     try {
-      const token = await auth.currentUser.getIdToken();
       const res = await fetch("/api/spotlight/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: { "Content-Type": "application/json"},
         body: JSON.stringify({ categories: selectedCategories, feedback_text: feedbackText.slice(0, 500) })
       });
       
@@ -120,10 +119,9 @@ export default function Spotlight() {
     
     setNotifyState("loading");
     try {
-      const token = await auth.currentUser.getIdToken();
       const res = await fetch("/api/spotlight/notify", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
+        headers: { "Content-Type": "application/json"}
       });
       
       const data = await res.json();

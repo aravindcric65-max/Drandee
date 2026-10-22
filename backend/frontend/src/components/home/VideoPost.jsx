@@ -51,7 +51,7 @@ export const VideoPost = ({ post, isActive, index, interactionProps }) => {
       video.currentTime = 0;
       firedEvents.current = new Set();
     }
-  }, [isActive]);
+  }, [isActive, post]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -118,15 +118,15 @@ export const VideoPost = ({ post, isActive, index, interactionProps }) => {
       const p = (currentTime / duration) * 100;
       setProgress(p);
 
-      const token = localStorage.getItem('token');
-      if (token && firedEvents.current) {
+      
+      if (firedEvents.current) {
         const fire = (event) => {
           if (!firedEvents.current) return;
           if (!firedEvents.current.has(event)) {
             firedEvents.current.add(event);
             fetch('/api/home/watch-event', {
               method: 'POST',
-              headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ postId: post.id, event, watchTime: currentTime * 1000 })
             }).catch(() => {});
           }
@@ -167,6 +167,11 @@ export const VideoPost = ({ post, isActive, index, interactionProps }) => {
   }, []);
 
   const [videoDuration, setVideoDuration] = useState(0);
+  const [videoError, setVideoError] = useState(false);
+
+  useEffect(() => {
+    setVideoError(false);
+  }, [post.id]);
 
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
@@ -196,25 +201,37 @@ export const VideoPost = ({ post, isActive, index, interactionProps }) => {
         role="button"
         aria-label={isPlaying ? 'Pause video' : 'Play video'}
       >
-        <video
-          ref={videoRef}
-          src={videoUrl}
-          poster={thumbnailUrl}
-          preload={index < 2 ? "auto" : "metadata"}
-          playsInline
-          className="w-full max-h-[75vh] object-contain"
-          loop
-          muted={isMuted}
-          onTimeUpdate={handleTimeUpdate}
-          onWaiting={handleWaiting}
-          onPlaying={handlePlaying}
-          onLoadedMetadata={handleLoadedMetadata}
-          aria-label={post.caption || 'Video content'}
-        />
+        {!videoError ? (
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            poster={thumbnailUrl}
+            preload={index < 2 ? "auto" : "metadata"}
+            playsInline
+            className="w-full max-h-[75vh] object-contain"
+            loop
+            muted={isMuted}
+            onTimeUpdate={handleTimeUpdate}
+            onWaiting={handleWaiting}
+            onPlaying={handlePlaying}
+            onLoadedMetadata={handleLoadedMetadata}
+            onError={() => setVideoError(true)}
+            aria-label={post.caption || 'Video content'}
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a16] gap-2 p-6 text-center">
+            {thumbnailUrl ? (
+              <img src={thumbnailUrl} alt="Thumbnail" className="w-full h-full object-cover opacity-40 absolute inset-0" />
+            ) : null}
+            <div className="relative z-10 text-white/70 text-sm font-medium">
+              Video unavailable
+            </div>
+          </div>
+        )}
         
         {/* Play/Pause Overlay Indicator */}
         <AnimatePresence>
-          {!isPlaying && (
+          {!isPlaying && !videoError && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}

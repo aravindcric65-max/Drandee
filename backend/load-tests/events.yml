@@ -1,0 +1,163 @@
+# ============================================================
+# load-tests/events.yml
+# Phase 6 — Step 3: Load Test — POST /api/events
+#
+# Tests high-volume event ingestion (watch sessions, engagement).
+# Events use a synthetic but schema-valid payload.
+# post_id values are intentionally fake (LOAD_TEST_POST_ID or
+# a fixed integer) — the server will return 4xx on FK failure,
+# which is EXPECTED and counted separately, not as a test error.
+#
+# Environments:
+#   smoke  → 1 VU, 30s
+#   load   → burst ingestion, 2m
+#   stress → high-burst ingestion — STAGING ONLY
+#
+# NEVER hard-code secrets. NEVER mutate production data.
+# ============================================================
+
+config:
+  # Default target: localhost. Override via CLI:
+  #   artillery run load-tests/events.yml -e smoke --target http://your-staging-server
+  target: "http://localhost:5000"
+
+  plugins:
+    expect: {}
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+
+  ensure:
+    # Events endpoint is async-heavy; p99 target is lenient
+    p99: 1000
+    maxErrorRate: 10  # 429 and 4xx from fake post_id are expected
+
+  environments:
+
+    smoke:
+      phases:
+        - name: "smoke"
+          duration: 30
+          arrivalRate: 1
+          rampTo: 2
+
+    load:
+      phases:
+        - name: "load-warmup"
+          duration: 20
+          arrivalRate: 2
+          rampTo: 15
+        - name: "load-burst"
+          duration: 90
+          arrivalRate: 15
+          rampTo: 40
+        - name: "load-cooldown"
+          duration: 20
+          arrivalRate: 40
+          rampTo: 5
+
+    stress:
+      # ⚠️ STAGING ONLY
+      phases:
+        - name: "stress-ramp"
+          duration: 45
+          arrivalRate: 5
+          rampTo: 60
+        - name: "stress-peak"
+          duration: 120
+          arrivalRate: 60
+          rampTo: 120
+        - name: "stress-recovery"
+          duration: 45
+          arrivalRate: 120
+          rampTo: 5
+
+# ── Scenarios ────────────────────────────────────────────────
+scenarios:
+
+  - name: "Events — single watch event"
+    weight: 40
+    flow:
+      - post:
+          url: "/api/events"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.LOAD_TEST_AUTH_TOKEN }}"
+          json:
+            events:
+              - event_type: "watch"
+                post_id: "{{ $processEnvironment.LOAD_TEST_POST_ID || '1' }}"
+                watch_time: 12000
+                video_duration: 60000
+                completion_percent: 20
+                respected: false
+                saved: false
+          expect:
+            # 200 = queued; 400 = invalid post_id (expected); 429 = rate limit (expected)
+            - statusCode:
+                - 200
+                - 400
+                - 401
+                - 429
+            - hasProperty: "success"
+
+  - name: "Events — completion event (high engagement)"
+    weight: 35
+    flow:
+      - post:
+          url: "/api/events"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.LOAD_TEST_AUTH_TOKEN }}"
+          json:
+            events:
+              - event_type: "watch"
+                post_id: "{{ $processEnvironment.LOAD_TEST_POST_ID || '1' }}"
+                watch_time: 58000
+                video_duration: 60000
+                completion_percent: 97
+                respected: true
+                saved: false
+          expect:
+            - statusCode:
+                - 200
+                - 400
+                - 401
+                - 429
+
+  - name: "Events — batch (3 events)"
+    weight: 25
+    flow:
+      - post:
+          url: "/api/events"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.LOAD_TEST_AUTH_TOKEN }}"
+          json:
+            events:
+              - event_type: "watch"
+                post_id: "{{ $processEnvironment.LOAD_TEST_POST_ID || '1' }}"
+                watch_time: 5000
+                video_duration: 30000
+                completion_percent: 16
+                respected: false
+                saved: false
+              - event_type: "watch"
+                post_id: "{{ $processEnvironment.LOAD_TEST_POST_ID || '1' }}"
+                watch_time: 28000
+                video_duration: 30000
+                completion_percent: 93
+                respected: true
+                saved: true
+              - event_type: "watch"
+                post_id: "{{ $processEnvironment.LOAD_TEST_POST_ID || '1' }}"
+                watch_time: 2000
+                video_duration: 45000
+                completion_percent: 4
+                respected: false
+                saved: false
+          expect:
+            - statusCode:
+                - 200
+                - 400
+                - 401
+                - 429

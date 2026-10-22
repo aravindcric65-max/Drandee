@@ -1,0 +1,544 @@
+diff --git a/node_modules/html5-qrcode/cjs/camera/core-impl.js b/node_modules/html5-qrcode/cjs/camera/core-impl.js
+index ef7bf76..968fb44 100644
+--- a/node_modules/html5-qrcode/cjs/camera/core-impl.js
++++ b/node_modules/html5-qrcode/cjs/camera/core-impl.js
+@@ -311,4 +311,3 @@ var CameraImpl = (function () {
+     return CameraImpl;
+ }());
+ exports.CameraImpl = CameraImpl;
+\ No newline at end of file
+-//# sourceMappingURL=core-impl.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/camera/core.js b/node_modules/html5-qrcode/cjs/camera/core.js
+index 383d5be..31785ed 100644
+--- a/node_modules/html5-qrcode/cjs/camera/core.js
++++ b/node_modules/html5-qrcode/cjs/camera/core.js
+@@ -1,3 +1,2 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+\ No newline at end of file
+-//# sourceMappingURL=core.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/camera/factories.js b/node_modules/html5-qrcode/cjs/camera/factories.js
+index acbbe11..18a28e1 100644
+--- a/node_modules/html5-qrcode/cjs/camera/factories.js
++++ b/node_modules/html5-qrcode/cjs/camera/factories.js
+@@ -61,4 +61,3 @@ var CameraFactory = (function () {
+     return CameraFactory;
+ }());
+ exports.CameraFactory = CameraFactory;
+\ No newline at end of file
+-//# sourceMappingURL=factories.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/camera/permissions.js b/node_modules/html5-qrcode/cjs/camera/permissions.js
+index a8fd8ca..92b67c7 100644
+--- a/node_modules/html5-qrcode/cjs/camera/permissions.js
++++ b/node_modules/html5-qrcode/cjs/camera/permissions.js
+@@ -62,4 +62,3 @@ var CameraPermissions = (function () {
+     return CameraPermissions;
+ }());
+ exports.CameraPermissions = CameraPermissions;
+\ No newline at end of file
+-//# sourceMappingURL=permissions.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/camera/retriever.js b/node_modules/html5-qrcode/cjs/camera/retriever.js
+index 329c343..b9997c1 100644
+--- a/node_modules/html5-qrcode/cjs/camera/retriever.js
++++ b/node_modules/html5-qrcode/cjs/camera/retriever.js
+@@ -124,4 +124,3 @@ var CameraRetriever = (function () {
+     return CameraRetriever;
+ }());
+ exports.CameraRetriever = CameraRetriever;
+\ No newline at end of file
+-//# sourceMappingURL=retriever.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/code-decoder.js b/node_modules/html5-qrcode/cjs/code-decoder.js
+index 1815562..a46bd57 100644
+--- a/node_modules/html5-qrcode/cjs/code-decoder.js
++++ b/node_modules/html5-qrcode/cjs/code-decoder.js
+@@ -138,4 +138,3 @@ var Html5QrcodeShim = (function () {
+     return Html5QrcodeShim;
+ }());
+ exports.Html5QrcodeShim = Html5QrcodeShim;
+\ No newline at end of file
+-//# sourceMappingURL=code-decoder.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/core.js b/node_modules/html5-qrcode/cjs/core.js
+index cbac339..1638840 100644
+--- a/node_modules/html5-qrcode/cjs/core.js
++++ b/node_modules/html5-qrcode/cjs/core.js
+@@ -168,4 +168,3 @@ function clip(value, minValue, maxValue) {
+     return value;
+ }
+ exports.clip = clip;
+\ No newline at end of file
+-//# sourceMappingURL=core.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/experimental-features.js b/node_modules/html5-qrcode/cjs/experimental-features.js
+index ecfcd7e..31785ed 100644
+--- a/node_modules/html5-qrcode/cjs/experimental-features.js
++++ b/node_modules/html5-qrcode/cjs/experimental-features.js
+@@ -1,3 +1,2 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+\ No newline at end of file
+-//# sourceMappingURL=experimental-features.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/html5-qrcode-scanner.js b/node_modules/html5-qrcode/cjs/html5-qrcode-scanner.js
+index 200425c..f06f7d2 100644
+--- a/node_modules/html5-qrcode/cjs/html5-qrcode-scanner.js
++++ b/node_modules/html5-qrcode/cjs/html5-qrcode-scanner.js
+@@ -658,4 +658,3 @@ var Html5QrcodeScanner = (function () {
+     return Html5QrcodeScanner;
+ }());
+ exports.Html5QrcodeScanner = Html5QrcodeScanner;
+\ No newline at end of file
+-//# sourceMappingURL=html5-qrcode-scanner.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/html5-qrcode.js b/node_modules/html5-qrcode/cjs/html5-qrcode.js
+index 27601fb..6fbef51 100644
+--- a/node_modules/html5-qrcode/cjs/html5-qrcode.js
++++ b/node_modules/html5-qrcode/cjs/html5-qrcode.js
+@@ -840,4 +840,3 @@ var Html5Qrcode = (function () {
+     return Html5Qrcode;
+ }());
+ exports.Html5Qrcode = Html5Qrcode;
+\ No newline at end of file
+-//# sourceMappingURL=html5-qrcode.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/image-assets.js b/node_modules/html5-qrcode/cjs/image-assets.js
+index 2ac885c..491929c 100644
+--- a/node_modules/html5-qrcode/cjs/image-assets.js
++++ b/node_modules/html5-qrcode/cjs/image-assets.js
+@@ -6,4 +6,3 @@ exports.ASSET_CAMERA_SCAN = SVG_XML_PREFIX + "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My
+ exports.ASSET_FILE_SCAN = SVG_XML_PREFIX + "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1OS4wMTggNTkuMDE4IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1OS4wMTggNTkuMDE4IiB4bWw6c3BhY2U9InByZXNlcnZlIj48cGF0aCBkPSJtNTguNzQxIDU0LjgwOS01Ljk2OS02LjI0NGExMC43NCAxMC43NCAwIDAgMCAyLjgyLTcuMjVjMC01Ljk1My00Ljg0My0xMC43OTYtMTAuNzk2LTEwLjc5NlMzNCAzNS4zNjEgMzQgNDEuMzE0IDM4Ljg0MyA1Mi4xMSA0NC43OTYgNTIuMTFjMi40NDEgMCA0LjY4OC0uODI0IDYuNDk5LTIuMTk2bDYuMDAxIDYuMjc3YS45OTguOTk4IDAgMCAwIDEuNDE0LjAzMiAxIDEgMCAwIDAgLjAzMS0xLjQxNHpNMzYgNDEuMzE0YzAtNC44NSAzLjk0Ni04Ljc5NiA4Ljc5Ni04Ljc5NnM4Ljc5NiAzLjk0NiA4Ljc5NiA4Ljc5Ni0zLjk0NiA4Ljc5Ni04Ljc5NiA4Ljc5NlMzNiA0Ni4xNjQgMzYgNDEuMzE0ek0xMC40MzEgMTYuMDg4YzAgMy4wNyAyLjQ5OCA1LjU2OCA1LjU2OSA1LjU2OHM1LjU2OS0yLjQ5OCA1LjU2OS01LjU2OGMwLTMuMDcxLTIuNDk4LTUuNTY5LTUuNTY5LTUuNTY5cy01LjU2OSAyLjQ5OC01LjU2OSA1LjU2OXptOS4xMzggMGMwIDEuOTY4LTEuNjAyIDMuNTY4LTMuNTY5IDMuNTY4cy0zLjU2OS0xLjYwMS0zLjU2OS0zLjU2OCAxLjYwMi0zLjU2OSAzLjU2OS0zLjU2OSAzLjU2OSAxLjYwMSAzLjU2OSAzLjU2OXoiLz48cGF0aCBkPSJtMzAuODgyIDI4Ljk4NyA5LjE4LTEwLjA1NCAxMS4yNjIgMTAuMzIzYTEgMSAwIDAgMCAxLjM1MS0xLjQ3NWwtMTItMTFhMSAxIDAgMCAwLTEuNDE0LjA2M2wtOS43OTQgMTAuNzI3LTQuNzQzLTQuNzQzYTEuMDAzIDEuMDAzIDAgMCAwLTEuMzY4LS4wNDRMNi4zMzkgMzcuNzY4YTEgMSAwIDEgMCAxLjMyMiAxLjUwMWwxNi4zMTMtMTQuMzYyIDcuMzE5IDcuMzE4YS45OTkuOTk5IDAgMSAwIDEuNDE0LTEuNDE0bC0xLjgyNS0xLjgyNHoiLz48cGF0aCBkPSJNMzAgNDYuNTE4SDJ2LTQyaDU0djI4YTEgMSAwIDEgMCAyIDB2LTI5YTEgMSAwIDAgMC0xLTFIMWExIDEgMCAwIDAtMSAxdjQ0YTEgMSAwIDAgMCAxIDFoMjlhMSAxIDAgMSAwIDAtMnoiLz48L3N2Zz4=";
+ exports.ASSET_INFO_ICON_16PX = SVG_XML_PREFIX + "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NjAgNDYwIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA0NjAgNDYwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48cGF0aCBkPSJNMjMwIDBDMTAyLjk3NSAwIDAgMTAyLjk3NSAwIDIzMHMxMDIuOTc1IDIzMCAyMzAgMjMwIDIzMC0xMDIuOTc0IDIzMC0yMzBTMzU3LjAyNSAwIDIzMCAwem0zOC4zMzMgMzc3LjM2YzAgOC42NzYtNy4wMzQgMTUuNzEtMTUuNzEgMTUuNzFoLTQzLjEwMWMtOC42NzYgMC0xNS43MS03LjAzNC0xNS43MS0xNS43MVYyMDIuNDc3YzAtOC42NzYgNy4wMzMtMTUuNzEgMTUuNzEtMTUuNzFoNDMuMTAxYzguNjc2IDAgMTUuNzEgNy4wMzMgMTUuNzEgMTUuNzFWMzc3LjM2ek0yMzAgMTU3Yy0yMS41MzkgMC0zOS0xNy40NjEtMzktMzlzMTcuNDYxLTM5IDM5LTM5IDM5IDE3LjQ2MSAzOSAzOS0xNy40NjEgMzktMzkgMzl6Ii8+PC9zdmc+";
+ exports.ASSET_CLOSE_ICON_16PX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAQgAAAEIBarqQRAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAE1SURBVDiNfdI7S0NBEAXgLya1otFgpbYSbISAgpXYi6CmiH9KCAiChaVga6OiWPgfRDQ+0itaGVNosXtluWwcuMzePfM4M3sq8lbHBubwg1dc4m1E/J/N4ghDPOIsfk/4xiEao5KX0McFljN4C9d4QTPXuY99jP3DsIoDPGM6BY5i5yI5R7O4q+ImFkJY2DCh3cAH2klyB+9J1xUMMAG7eCh1a+Mr+k48b5diXrFVwwLuS+BJ9MfR7+G0FHOHhTHhnXNWS87VDF4pcnfQK4Ep7XScNLmPTZgURNKKYENYWDpzW1BhscS1WHS8CDgURFJQrWcoF3c13KKbgg1BYQfy8xZWEzTTw1QZbAoKu8FqJnktdu5hcVSHmchiILzzuaDQvjBzV2m8yohCE1jHfPx/xhU+y4G/D75ELlRJsSYAAAAASUVORK5CYII=";
+\ No newline at end of file
+-//# sourceMappingURL=image-assets.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/index.js b/node_modules/html5-qrcode/cjs/index.js
+index 7afb6ce..102bef5 100644
+--- a/node_modules/html5-qrcode/cjs/index.js
++++ b/node_modules/html5-qrcode/cjs/index.js
+@@ -11,4 +11,3 @@ var state_manager_1 = require("./state-manager");
+ Object.defineProperty(exports, "Html5QrcodeScannerState", { enumerable: true, get: function () { return state_manager_1.Html5QrcodeScannerState; } });
+ var core_2 = require("./core");
+ Object.defineProperty(exports, "Html5QrcodeScanType", { enumerable: true, get: function () { return core_2.Html5QrcodeScanType; } });
+\ No newline at end of file
+-//# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/native-bar-code-detector.js b/node_modules/html5-qrcode/cjs/native-bar-code-detector.js
+index 7892030..22d8d02 100644
+--- a/node_modules/html5-qrcode/cjs/native-bar-code-detector.js
++++ b/node_modules/html5-qrcode/cjs/native-bar-code-detector.js
+@@ -145,4 +145,3 @@ var BarcodeDetectorDelegate = (function () {
+     return BarcodeDetectorDelegate;
+ }());
+ exports.BarcodeDetectorDelegate = BarcodeDetectorDelegate;
+\ No newline at end of file
+-//# sourceMappingURL=native-bar-code-detector.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/state-manager.js b/node_modules/html5-qrcode/cjs/state-manager.js
+index a89a9c6..582a3bd 100644
+--- a/node_modules/html5-qrcode/cjs/state-manager.js
++++ b/node_modules/html5-qrcode/cjs/state-manager.js
+@@ -109,4 +109,3 @@ var StateManagerFactory = (function () {
+     return StateManagerFactory;
+ }());
+ exports.StateManagerFactory = StateManagerFactory;
+\ No newline at end of file
+-//# sourceMappingURL=state-manager.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/storage.js b/node_modules/html5-qrcode/cjs/storage.js
+index ba59389..07b60b9 100644
+--- a/node_modules/html5-qrcode/cjs/storage.js
++++ b/node_modules/html5-qrcode/cjs/storage.js
+@@ -52,4 +52,3 @@ var PersistedDataManager = (function () {
+     return PersistedDataManager;
+ }());
+ exports.PersistedDataManager = PersistedDataManager;
+\ No newline at end of file
+-//# sourceMappingURL=storage.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/strings.js b/node_modules/html5-qrcode/cjs/strings.js
+index 97bfbf5..b1a6466 100644
+--- a/node_modules/html5-qrcode/cjs/strings.js
++++ b/node_modules/html5-qrcode/cjs/strings.js
+@@ -139,4 +139,3 @@ var LibraryInfoStrings = (function () {
+     return LibraryInfoStrings;
+ }());
+ exports.LibraryInfoStrings = LibraryInfoStrings;
+\ No newline at end of file
+-//# sourceMappingURL=strings.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/ui.js b/node_modules/html5-qrcode/cjs/ui.js
+index a4c4d32..ff97e65 100644
+--- a/node_modules/html5-qrcode/cjs/ui.js
++++ b/node_modules/html5-qrcode/cjs/ui.js
+@@ -115,4 +115,3 @@ var LibraryInfoContainer = (function () {
+     return LibraryInfoContainer;
+ }());
+ exports.LibraryInfoContainer = LibraryInfoContainer;
+\ No newline at end of file
+-//# sourceMappingURL=ui.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/ui/scanner/base.js b/node_modules/html5-qrcode/cjs/ui/scanner/base.js
+index bcdabfc..d0fa2e3 100644
+--- a/node_modules/html5-qrcode/cjs/ui/scanner/base.js
++++ b/node_modules/html5-qrcode/cjs/ui/scanner/base.js
+@@ -33,4 +33,3 @@ var BaseUiElementFactory = (function () {
+     return BaseUiElementFactory;
+ }());
+ exports.BaseUiElementFactory = BaseUiElementFactory;
+\ No newline at end of file
+-//# sourceMappingURL=base.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/ui/scanner/camera-selection-ui.js b/node_modules/html5-qrcode/cjs/ui/scanner/camera-selection-ui.js
+index 3c9a9d9..ce93c36 100644
+--- a/node_modules/html5-qrcode/cjs/ui/scanner/camera-selection-ui.js
++++ b/node_modules/html5-qrcode/cjs/ui/scanner/camera-selection-ui.js
+@@ -86,4 +86,3 @@ var CameraSelectionUi = (function () {
+     return CameraSelectionUi;
+ }());
+ exports.CameraSelectionUi = CameraSelectionUi;
+\ No newline at end of file
+-//# sourceMappingURL=camera-selection-ui.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/ui/scanner/camera-zoom-ui.js b/node_modules/html5-qrcode/cjs/ui/scanner/camera-zoom-ui.js
+index c3dee1b..ff0b51e 100644
+--- a/node_modules/html5-qrcode/cjs/ui/scanner/camera-zoom-ui.js
++++ b/node_modules/html5-qrcode/cjs/ui/scanner/camera-zoom-ui.js
+@@ -70,4 +70,3 @@ var CameraZoomUi = (function () {
+     return CameraZoomUi;
+ }());
+ exports.CameraZoomUi = CameraZoomUi;
+\ No newline at end of file
+-//# sourceMappingURL=camera-zoom-ui.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/ui/scanner/file-selection-ui.js b/node_modules/html5-qrcode/cjs/ui/scanner/file-selection-ui.js
+index 62d6698..aa370ea 100644
+--- a/node_modules/html5-qrcode/cjs/ui/scanner/file-selection-ui.js
++++ b/node_modules/html5-qrcode/cjs/ui/scanner/file-selection-ui.js
+@@ -167,4 +167,3 @@ var FileSelectionUi = (function () {
+     return FileSelectionUi;
+ }());
+ exports.FileSelectionUi = FileSelectionUi;
+\ No newline at end of file
+-//# sourceMappingURL=file-selection-ui.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/ui/scanner/scan-type-selector.js b/node_modules/html5-qrcode/cjs/ui/scanner/scan-type-selector.js
+index df70b55..16c4e84 100644
+--- a/node_modules/html5-qrcode/cjs/ui/scanner/scan-type-selector.js
++++ b/node_modules/html5-qrcode/cjs/ui/scanner/scan-type-selector.js
+@@ -48,4 +48,3 @@ var ScanTypeSelector = (function () {
+     return ScanTypeSelector;
+ }());
+ exports.ScanTypeSelector = ScanTypeSelector;
+\ No newline at end of file
+-//# sourceMappingURL=scan-type-selector.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/ui/scanner/torch-button.js b/node_modules/html5-qrcode/cjs/ui/scanner/torch-button.js
+index 4e1b7b2..86be92a 100644
+--- a/node_modules/html5-qrcode/cjs/ui/scanner/torch-button.js
++++ b/node_modules/html5-qrcode/cjs/ui/scanner/torch-button.js
+@@ -168,4 +168,3 @@ var TorchButton = (function () {
+     return TorchButton;
+ }());
+ exports.TorchButton = TorchButton;
+\ No newline at end of file
+-//# sourceMappingURL=torch-button.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/utils.js b/node_modules/html5-qrcode/cjs/utils.js
+index 80d2660..20a561f 100644
+--- a/node_modules/html5-qrcode/cjs/utils.js
++++ b/node_modules/html5-qrcode/cjs/utils.js
+@@ -35,4 +35,3 @@ var VideoConstraintsUtil = (function () {
+     return VideoConstraintsUtil;
+ }());
+ exports.VideoConstraintsUtil = VideoConstraintsUtil;
+\ No newline at end of file
+-//# sourceMappingURL=utils.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/cjs/zxing-html5-qrcode-decoder.js b/node_modules/html5-qrcode/cjs/zxing-html5-qrcode-decoder.js
+index 1bb0e37..4abf86f 100644
+--- a/node_modules/html5-qrcode/cjs/zxing-html5-qrcode-decoder.js
++++ b/node_modules/html5-qrcode/cjs/zxing-html5-qrcode-decoder.js
+@@ -106,4 +106,3 @@ var ZXingHtml5QrcodeDecoder = (function () {
+     return ZXingHtml5QrcodeDecoder;
+ }());
+ exports.ZXingHtml5QrcodeDecoder = ZXingHtml5QrcodeDecoder;
+\ No newline at end of file
+-//# sourceMappingURL=zxing-html5-qrcode-decoder.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/camera/core-impl.js b/node_modules/html5-qrcode/esm/camera/core-impl.js
+index 48948cb..593ba39 100644
+--- a/node_modules/html5-qrcode/esm/camera/core-impl.js
++++ b/node_modules/html5-qrcode/esm/camera/core-impl.js
+@@ -308,4 +308,3 @@ var CameraImpl = (function () {
+     return CameraImpl;
+ }());
+ export { CameraImpl };
+\ No newline at end of file
+-//# sourceMappingURL=core-impl.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/camera/core.js b/node_modules/html5-qrcode/esm/camera/core.js
+index d59ace3..8cec2e9 100644
+--- a/node_modules/html5-qrcode/esm/camera/core.js
++++ b/node_modules/html5-qrcode/esm/camera/core.js
+@@ -1,2 +1 @@
+ export {};
+\ No newline at end of file
+-//# sourceMappingURL=core.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/camera/factories.js b/node_modules/html5-qrcode/esm/camera/factories.js
+index 8e315c3..312ffdd 100644
+--- a/node_modules/html5-qrcode/esm/camera/factories.js
++++ b/node_modules/html5-qrcode/esm/camera/factories.js
+@@ -58,4 +58,3 @@ var CameraFactory = (function () {
+     return CameraFactory;
+ }());
+ export { CameraFactory };
+\ No newline at end of file
+-//# sourceMappingURL=factories.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/camera/permissions.js b/node_modules/html5-qrcode/esm/camera/permissions.js
+index 633d3f7..121b4a8 100644
+--- a/node_modules/html5-qrcode/esm/camera/permissions.js
++++ b/node_modules/html5-qrcode/esm/camera/permissions.js
+@@ -59,4 +59,3 @@ var CameraPermissions = (function () {
+     return CameraPermissions;
+ }());
+ export { CameraPermissions };
+\ No newline at end of file
+-//# sourceMappingURL=permissions.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/camera/retriever.js b/node_modules/html5-qrcode/esm/camera/retriever.js
+index fd1a895..867eb97 100644
+--- a/node_modules/html5-qrcode/esm/camera/retriever.js
++++ b/node_modules/html5-qrcode/esm/camera/retriever.js
+@@ -121,4 +121,3 @@ var CameraRetriever = (function () {
+     return CameraRetriever;
+ }());
+ export { CameraRetriever };
+\ No newline at end of file
+-//# sourceMappingURL=retriever.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/code-decoder.js b/node_modules/html5-qrcode/esm/code-decoder.js
+index 0715bae..b44376e 100644
+--- a/node_modules/html5-qrcode/esm/code-decoder.js
++++ b/node_modules/html5-qrcode/esm/code-decoder.js
+@@ -135,4 +135,3 @@ var Html5QrcodeShim = (function () {
+     return Html5QrcodeShim;
+ }());
+ export { Html5QrcodeShim };
+\ No newline at end of file
+-//# sourceMappingURL=code-decoder.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/core.js b/node_modules/html5-qrcode/esm/core.js
+index 0c45ffa..83e6d90 100644
+--- a/node_modules/html5-qrcode/esm/core.js
++++ b/node_modules/html5-qrcode/esm/core.js
+@@ -162,4 +162,3 @@ export function clip(value, minValue, maxValue) {
+     }
+     return value;
+ }
+\ No newline at end of file
+-//# sourceMappingURL=core.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/experimental-features.js b/node_modules/html5-qrcode/esm/experimental-features.js
+index ab918ba..8cec2e9 100644
+--- a/node_modules/html5-qrcode/esm/experimental-features.js
++++ b/node_modules/html5-qrcode/esm/experimental-features.js
+@@ -1,2 +1 @@
+ export {};
+\ No newline at end of file
+-//# sourceMappingURL=experimental-features.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/html5-qrcode-scanner.js b/node_modules/html5-qrcode/esm/html5-qrcode-scanner.js
+index e55afdd..533ad4b 100644
+--- a/node_modules/html5-qrcode/esm/html5-qrcode-scanner.js
++++ b/node_modules/html5-qrcode/esm/html5-qrcode-scanner.js
+@@ -655,4 +655,3 @@ var Html5QrcodeScanner = (function () {
+     return Html5QrcodeScanner;
+ }());
+ export { Html5QrcodeScanner };
+\ No newline at end of file
+-//# sourceMappingURL=html5-qrcode-scanner.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/html5-qrcode.js b/node_modules/html5-qrcode/esm/html5-qrcode.js
+index b8bc869..422447b 100644
+--- a/node_modules/html5-qrcode/esm/html5-qrcode.js
++++ b/node_modules/html5-qrcode/esm/html5-qrcode.js
+@@ -837,4 +837,3 @@ var Html5Qrcode = (function () {
+     return Html5Qrcode;
+ }());
+ export { Html5Qrcode };
+\ No newline at end of file
+-//# sourceMappingURL=html5-qrcode.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/image-assets.js b/node_modules/html5-qrcode/esm/image-assets.js
+index 0b2e73c..376a2f0 100644
+--- a/node_modules/html5-qrcode/esm/image-assets.js
++++ b/node_modules/html5-qrcode/esm/image-assets.js
+@@ -3,4 +3,3 @@ export var ASSET_CAMERA_SCAN = SVG_XML_PREFIX + "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy5
+ export var ASSET_FILE_SCAN = SVG_XML_PREFIX + "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1OS4wMTggNTkuMDE4IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1OS4wMTggNTkuMDE4IiB4bWw6c3BhY2U9InByZXNlcnZlIj48cGF0aCBkPSJtNTguNzQxIDU0LjgwOS01Ljk2OS02LjI0NGExMC43NCAxMC43NCAwIDAgMCAyLjgyLTcuMjVjMC01Ljk1My00Ljg0My0xMC43OTYtMTAuNzk2LTEwLjc5NlMzNCAzNS4zNjEgMzQgNDEuMzE0IDM4Ljg0MyA1Mi4xMSA0NC43OTYgNTIuMTFjMi40NDEgMCA0LjY4OC0uODI0IDYuNDk5LTIuMTk2bDYuMDAxIDYuMjc3YS45OTguOTk4IDAgMCAwIDEuNDE0LjAzMiAxIDEgMCAwIDAgLjAzMS0xLjQxNHpNMzYgNDEuMzE0YzAtNC44NSAzLjk0Ni04Ljc5NiA4Ljc5Ni04Ljc5NnM4Ljc5NiAzLjk0NiA4Ljc5NiA4Ljc5Ni0zLjk0NiA4Ljc5Ni04Ljc5NiA4Ljc5NlMzNiA0Ni4xNjQgMzYgNDEuMzE0ek0xMC40MzEgMTYuMDg4YzAgMy4wNyAyLjQ5OCA1LjU2OCA1LjU2OSA1LjU2OHM1LjU2OS0yLjQ5OCA1LjU2OS01LjU2OGMwLTMuMDcxLTIuNDk4LTUuNTY5LTUuNTY5LTUuNTY5cy01LjU2OSAyLjQ5OC01LjU2OSA1LjU2OXptOS4xMzggMGMwIDEuOTY4LTEuNjAyIDMuNTY4LTMuNTY5IDMuNTY4cy0zLjU2OS0xLjYwMS0zLjU2OS0zLjU2OCAxLjYwMi0zLjU2OSAzLjU2OS0zLjU2OSAzLjU2OSAxLjYwMSAzLjU2OSAzLjU2OXoiLz48cGF0aCBkPSJtMzAuODgyIDI4Ljk4NyA5LjE4LTEwLjA1NCAxMS4yNjIgMTAuMzIzYTEgMSAwIDAgMCAxLjM1MS0xLjQ3NWwtMTItMTFhMSAxIDAgMCAwLTEuNDE0LjA2M2wtOS43OTQgMTAuNzI3LTQuNzQzLTQuNzQzYTEuMDAzIDEuMDAzIDAgMCAwLTEuMzY4LS4wNDRMNi4zMzkgMzcuNzY4YTEgMSAwIDEgMCAxLjMyMiAxLjUwMWwxNi4zMTMtMTQuMzYyIDcuMzE5IDcuMzE4YS45OTkuOTk5IDAgMSAwIDEuNDE0LTEuNDE0bC0xLjgyNS0xLjgyNHoiLz48cGF0aCBkPSJNMzAgNDYuNTE4SDJ2LTQyaDU0djI4YTEgMSAwIDEgMCAyIDB2LTI5YTEgMSAwIDAgMC0xLTFIMWExIDEgMCAwIDAtMSAxdjQ0YTEgMSAwIDAgMCAxIDFoMjlhMSAxIDAgMSAwIDAtMnoiLz48L3N2Zz4=";
+ export var ASSET_INFO_ICON_16PX = SVG_XML_PREFIX + "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NjAgNDYwIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA0NjAgNDYwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48cGF0aCBkPSJNMjMwIDBDMTAyLjk3NSAwIDAgMTAyLjk3NSAwIDIzMHMxMDIuOTc1IDIzMCAyMzAgMjMwIDIzMC0xMDIuOTc0IDIzMC0yMzBTMzU3LjAyNSAwIDIzMCAwem0zOC4zMzMgMzc3LjM2YzAgOC42NzYtNy4wMzQgMTUuNzEtMTUuNzEgMTUuNzFoLTQzLjEwMWMtOC42NzYgMC0xNS43MS03LjAzNC0xNS43MS0xNS43MVYyMDIuNDc3YzAtOC42NzYgNy4wMzMtMTUuNzEgMTUuNzEtMTUuNzFoNDMuMTAxYzguNjc2IDAgMTUuNzEgNy4wMzMgMTUuNzEgMTUuNzFWMzc3LjM2ek0yMzAgMTU3Yy0yMS41MzkgMC0zOS0xNy40NjEtMzktMzlzMTcuNDYxLTM5IDM5LTM5IDM5IDE3LjQ2MSAzOSAzOS0xNy40NjEgMzktMzkgMzl6Ii8+PC9zdmc+";
+ export var ASSET_CLOSE_ICON_16PX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAQgAAAEIBarqQRAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAE1SURBVDiNfdI7S0NBEAXgLya1otFgpbYSbISAgpXYi6CmiH9KCAiChaVga6OiWPgfRDQ+0itaGVNosXtluWwcuMzePfM4M3sq8lbHBubwg1dc4m1E/J/N4ghDPOIsfk/4xiEao5KX0McFljN4C9d4QTPXuY99jP3DsIoDPGM6BY5i5yI5R7O4q+ImFkJY2DCh3cAH2klyB+9J1xUMMAG7eCh1a+Mr+k48b5diXrFVwwLuS+BJ9MfR7+G0FHOHhTHhnXNWS87VDF4pcnfQK4Ep7XScNLmPTZgURNKKYENYWDpzW1BhscS1WHS8CDgURFJQrWcoF3c13KKbgg1BYQfy8xZWEzTTw1QZbAoKu8FqJnktdu5hcVSHmchiILzzuaDQvjBzV2m8yohCE1jHfPx/xhU+y4G/D75ELlRJsSYAAAAASUVORK5CYII=";
+\ No newline at end of file
+-//# sourceMappingURL=image-assets.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/index.js b/node_modules/html5-qrcode/esm/index.js
+index 890331e..1bfdb01 100644
+--- a/node_modules/html5-qrcode/esm/index.js
++++ b/node_modules/html5-qrcode/esm/index.js
+@@ -3,4 +3,3 @@ export { Html5QrcodeScanner } from "./html5-qrcode-scanner";
+ export { Html5QrcodeSupportedFormats } from "./core";
+ export { Html5QrcodeScannerState } from "./state-manager";
+ export { Html5QrcodeScanType } from "./core";
+\ No newline at end of file
+-//# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/native-bar-code-detector.js b/node_modules/html5-qrcode/esm/native-bar-code-detector.js
+index 5760e30..c8cf9aa 100644
+--- a/node_modules/html5-qrcode/esm/native-bar-code-detector.js
++++ b/node_modules/html5-qrcode/esm/native-bar-code-detector.js
+@@ -142,4 +142,3 @@ var BarcodeDetectorDelegate = (function () {
+     return BarcodeDetectorDelegate;
+ }());
+ export { BarcodeDetectorDelegate };
+\ No newline at end of file
+-//# sourceMappingURL=native-bar-code-detector.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/state-manager.js b/node_modules/html5-qrcode/esm/state-manager.js
+index 71a71d4..b64d928 100644
+--- a/node_modules/html5-qrcode/esm/state-manager.js
++++ b/node_modules/html5-qrcode/esm/state-manager.js
+@@ -106,4 +106,3 @@ var StateManagerFactory = (function () {
+     return StateManagerFactory;
+ }());
+ export { StateManagerFactory };
+\ No newline at end of file
+-//# sourceMappingURL=state-manager.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/storage.js b/node_modules/html5-qrcode/esm/storage.js
+index 9d2215e..7c00c93 100644
+--- a/node_modules/html5-qrcode/esm/storage.js
++++ b/node_modules/html5-qrcode/esm/storage.js
+@@ -49,4 +49,3 @@ var PersistedDataManager = (function () {
+     return PersistedDataManager;
+ }());
+ export { PersistedDataManager };
+\ No newline at end of file
+-//# sourceMappingURL=storage.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/strings.js b/node_modules/html5-qrcode/esm/strings.js
+index 6840a7f..6ab72fd 100644
+--- a/node_modules/html5-qrcode/esm/strings.js
++++ b/node_modules/html5-qrcode/esm/strings.js
+@@ -136,4 +136,3 @@ var LibraryInfoStrings = (function () {
+     return LibraryInfoStrings;
+ }());
+ export { LibraryInfoStrings };
+\ No newline at end of file
+-//# sourceMappingURL=strings.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/ui.js b/node_modules/html5-qrcode/esm/ui.js
+index 663072b..961ef14 100644
+--- a/node_modules/html5-qrcode/esm/ui.js
++++ b/node_modules/html5-qrcode/esm/ui.js
+@@ -112,4 +112,3 @@ var LibraryInfoContainer = (function () {
+     return LibraryInfoContainer;
+ }());
+ export { LibraryInfoContainer };
+\ No newline at end of file
+-//# sourceMappingURL=ui.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/ui/scanner/base.js b/node_modules/html5-qrcode/esm/ui/scanner/base.js
+index ed15484..ab92457 100644
+--- a/node_modules/html5-qrcode/esm/ui/scanner/base.js
++++ b/node_modules/html5-qrcode/esm/ui/scanner/base.js
+@@ -30,4 +30,3 @@ var BaseUiElementFactory = (function () {
+     return BaseUiElementFactory;
+ }());
+ export { BaseUiElementFactory };
+\ No newline at end of file
+-//# sourceMappingURL=base.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/ui/scanner/camera-selection-ui.js b/node_modules/html5-qrcode/esm/ui/scanner/camera-selection-ui.js
+index d5d422d..e7ed632 100644
+--- a/node_modules/html5-qrcode/esm/ui/scanner/camera-selection-ui.js
++++ b/node_modules/html5-qrcode/esm/ui/scanner/camera-selection-ui.js
+@@ -83,4 +83,3 @@ var CameraSelectionUi = (function () {
+     return CameraSelectionUi;
+ }());
+ export { CameraSelectionUi };
+\ No newline at end of file
+-//# sourceMappingURL=camera-selection-ui.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/ui/scanner/camera-zoom-ui.js b/node_modules/html5-qrcode/esm/ui/scanner/camera-zoom-ui.js
+index b80c171..fe92118 100644
+--- a/node_modules/html5-qrcode/esm/ui/scanner/camera-zoom-ui.js
++++ b/node_modules/html5-qrcode/esm/ui/scanner/camera-zoom-ui.js
+@@ -67,4 +67,3 @@ var CameraZoomUi = (function () {
+     return CameraZoomUi;
+ }());
+ export { CameraZoomUi };
+\ No newline at end of file
+-//# sourceMappingURL=camera-zoom-ui.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/ui/scanner/file-selection-ui.js b/node_modules/html5-qrcode/esm/ui/scanner/file-selection-ui.js
+index 5ebeade..87277be 100644
+--- a/node_modules/html5-qrcode/esm/ui/scanner/file-selection-ui.js
++++ b/node_modules/html5-qrcode/esm/ui/scanner/file-selection-ui.js
+@@ -164,4 +164,3 @@ var FileSelectionUi = (function () {
+     return FileSelectionUi;
+ }());
+ export { FileSelectionUi };
+\ No newline at end of file
+-//# sourceMappingURL=file-selection-ui.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/ui/scanner/scan-type-selector.js b/node_modules/html5-qrcode/esm/ui/scanner/scan-type-selector.js
+index 9b145b7..244343c 100644
+--- a/node_modules/html5-qrcode/esm/ui/scanner/scan-type-selector.js
++++ b/node_modules/html5-qrcode/esm/ui/scanner/scan-type-selector.js
+@@ -45,4 +45,3 @@ var ScanTypeSelector = (function () {
+     return ScanTypeSelector;
+ }());
+ export { ScanTypeSelector };
+\ No newline at end of file
+-//# sourceMappingURL=scan-type-selector.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/ui/scanner/torch-button.js b/node_modules/html5-qrcode/esm/ui/scanner/torch-button.js
+index 5b31efb..16e3f36 100644
+--- a/node_modules/html5-qrcode/esm/ui/scanner/torch-button.js
++++ b/node_modules/html5-qrcode/esm/ui/scanner/torch-button.js
+@@ -165,4 +165,3 @@ var TorchButton = (function () {
+     return TorchButton;
+ }());
+ export { TorchButton };
+\ No newline at end of file
+-//# sourceMappingURL=torch-button.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/utils.js b/node_modules/html5-qrcode/esm/utils.js
+index 93531f8..5c26548 100644
+--- a/node_modules/html5-qrcode/esm/utils.js
++++ b/node_modules/html5-qrcode/esm/utils.js
+@@ -32,4 +32,3 @@ var VideoConstraintsUtil = (function () {
+     return VideoConstraintsUtil;
+ }());
+ export { VideoConstraintsUtil };
+\ No newline at end of file
+-//# sourceMappingURL=utils.js.map
+\ No newline at end of file
+diff --git a/node_modules/html5-qrcode/esm/zxing-html5-qrcode-decoder.js b/node_modules/html5-qrcode/esm/zxing-html5-qrcode-decoder.js
+index a117c82..5ba4071 100644
+--- a/node_modules/html5-qrcode/esm/zxing-html5-qrcode-decoder.js
++++ b/node_modules/html5-qrcode/esm/zxing-html5-qrcode-decoder.js
+@@ -103,4 +103,3 @@ var ZXingHtml5QrcodeDecoder = (function () {
+     return ZXingHtml5QrcodeDecoder;
+ }());
+ export { ZXingHtml5QrcodeDecoder };
+\ No newline at end of file
+-//# sourceMappingURL=zxing-html5-qrcode-decoder.js.map
+\ No newline at end of file

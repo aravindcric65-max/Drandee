@@ -63,12 +63,12 @@ const styles = {
   title: {
     fontSize: "24px",
     fontWeight: "700",
-    color: "#fff",
+    color: "#111111",
     margin: "0 0 8px 0",
   },
   subtitle: {
     fontSize: "16px",
-    color: "rgba(255,255,255,0.6)",
+    color: "#666666",
     margin: "0 0 32px 0",
   },
   chipGroup: {
@@ -87,9 +87,9 @@ const styles = {
     border: "1px solid transparent",
   },
   chipInactive: {
-    background: "rgba(255,255,255,0.05)",
-    color: "rgba(255,255,255,0.7)",
-    borderColor: "rgba(255,255,255,0.1)",
+    background: "#F7F7F9",
+    color: "#666666",
+    borderColor: "#E8E8EC",
   },
   chipActive: {
     background: "var(--primary, #7F77DD)",

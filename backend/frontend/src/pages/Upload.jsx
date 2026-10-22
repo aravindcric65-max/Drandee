@@ -6,12 +6,13 @@ const Upload = () => {
   const [showStudio, setShowStudio] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#090A0F]">
+    <div className="min-h-screen bg-[#FFFFFF]">
+      {!showStudio && <>
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-[#090A0F]/80 backdrop-blur-lg border-b border-white/5">
+      <header className="sticky top-0 z-40 bg-[#FFFFFF]/90 backdrop-blur-lg border-b border-[#E8E8EC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-xl font-bold text-white">Upload</h1>
+            <h1 className="text-xl font-bold text-[#111111]">Upload</h1>
             <button
               onClick={() => setShowStudio(true)}
               className="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-full hover:opacity-90 transition-all active:scale-98"
@@ -47,12 +48,12 @@ const Upload = () => {
           </div>
 
           {/* Title */}
-          <h2 className="text-4xl font-bold text-white mb-4">
+          <h2 className="text-4xl font-bold text-[#111111] mb-4">
             Create & Share Videos
           </h2>
 
           {/* Subtitle */}
-          <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
+          <p className="text-[#666666] text-lg mb-8 max-w-2xl mx-auto">
             Upload your videos, add music, captions, and share with your followers.
             It's easy and fun!
           </p>
@@ -114,20 +115,21 @@ const Upload = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white/5 rounded-2xl p-6 border border-white/5"
+                className="bg-[#F7F7F9] rounded-2xl p-6 border border-[#E8E8EC]"
               >
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                   {feature.icon}
                 </div>
-                <h3 className="text-white font-semibold text-lg mb-2">
+                <h3 className="text-[#111111] font-semibold text-lg mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-400">{feature.description}</p>
+                <p className="text-[#666666]">{feature.description}</p>
               </motion.div>
             ))}
           </div>
         </motion.div>
       </main>
+      </>}
 
       {/* Upload Studio Modal */}
       <AnimatePresence>

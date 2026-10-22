@@ -1,0 +1,44 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+.git
+.gitignore
+scratch/
+load-tests/
+tests/
+coverage/
+*.md
+logs/
+
+# Probe / test / runner scripts
+check*.js
+db_*.js
+test_*.js
+probe*.js
+verify_*.js
+schema_check.js
+diagnose_routes.js
+dump_schema.js
+fix*.js
+generate-test-token.js
+query_post41.js
+run_build.js
+run_pass2.js
+startup_test.js
+kill_and_start.js
+testdb.js
+scratch_verify.js
+
+# Log and report files at root
+*.txt
+probe_report.txt
+server_runtime.log
+build_*.log
+migration_pass2.log
+pass2_run_report.txt
+e2e_pass2.log
+FINAL_VERIFY_REPORT.txt
+
+# Build artifacts (served separately)
+frontend/build/

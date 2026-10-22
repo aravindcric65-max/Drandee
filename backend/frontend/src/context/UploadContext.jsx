@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { parseApiResponse } from '../utils/apiHelper';
 
 export const UploadContext = createContext({
   uploads: [],
@@ -11,7 +12,7 @@ export const useUpload = () => useContext(UploadContext);
 export const UploadProvider = ({ children }) => {
   const [uploads, setUploads] = useState([]); // Array of { id, progress, stage, error }
 
-  const startUpload = useCallback(async (file, settings, token, postType = 'video') => {
+  const startUpload = useCallback(async (file, settings, postType = 'video') => {
     const uploadId = Date.now().toString();
     setUploads(prev => [...prev, { id: uploadId, progress: 0, stage: 'preparing', error: null }]);
 
@@ -21,8 +22,7 @@ export const UploadProvider = ({ children }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+          },
         body: JSON.stringify({
           mediaType: file.type || (file.name?.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg'),
           fileName: file.name || 'upload.mp4',
@@ -30,14 +30,8 @@ export const UploadProvider = ({ children }) => {
         })
       });
 
-      if (sessionRes.status === 401) {
-        throw new Error('Authentication expired. Please log in again.');
-      }
-
-      const sessionData = await sessionRes.json();
-      if (!sessionData.success) throw new Error(sessionData.error?.message || 'Failed to create session');
-
-      const { sessionId } = sessionData.data;
+      const sessionData = await parseApiResponse(sessionRes, "Upload Session");
+      const { sessionId } = sessionData.data || sessionData;
 
       // 2. Upload file in chunks
       const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
@@ -64,14 +58,10 @@ export const UploadProvider = ({ children }) => {
           try {
             const chunkRes = await fetch(`/api/upload/chunk/${sessionId}`, {
               method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`
-              },
               body: formData
             });
 
-            if (!chunkRes.ok) throw new Error(`Chunk ${i} failed`);
-            const chunkData = await chunkRes.json();
+            const chunkData = await parseApiResponse(chunkRes, `Upload Chunk ${i}`);
             
             if (chunkData.data?.completed) {
               storageUrl = chunkData.data.storageUrl;
@@ -89,17 +79,17 @@ export const UploadProvider = ({ children }) => {
       }
 
       // 3. Dispatch to worker queue (by hitting /session/complete)
-      await fetch(`/api/upload/session/${sessionId}/complete`, {
+      const completeRes = await fetch(`/api/upload/session/${sessionId}/complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+          },
         body: JSON.stringify({ 
           storageUrl,
-          processingMetadata: { thumbnailUrl: settings.thumbnail_url || null }
+          processingMetadata: { thumbnailUrl: settings.cover || null }
         })
       });
+      await parseApiResponse(completeRes, "Session Complete");
       
       setUploads(prev => prev.map(u => u.id === uploadId ? { ...u, stage: 'processing' } : u));
       
@@ -109,11 +99,10 @@ export const UploadProvider = ({ children }) => {
         await new Promise(r => setTimeout(r, 2000)); // Poll every 2 seconds
         
         const statusRes = await fetch(`/api/upload/session/${sessionId}/status`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+          });
         
         if (statusRes.ok) {
-          const statusData = await statusRes.json();
+          const statusData = await parseApiResponse(statusRes, "Check Status");
           if (statusData.data?.status === 'ready') {
             isReady = true;
           } else if (statusData.data?.status === 'failed') {
@@ -127,8 +116,7 @@ export const UploadProvider = ({ children }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+          },
         body: JSON.stringify({
           sessionId,
           type: postType,
@@ -138,8 +126,7 @@ export const UploadProvider = ({ children }) => {
         })
       });
 
-      const postData = await postRes.json();
-      if (!postData.success) throw new Error(postData.error?.message || 'Failed to create post');
+      const postData = await parseApiResponse(postRes, "Create Post");
 
       // Dispatch global event for live feed update
       if (postData.data) {

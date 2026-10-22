@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { SlashIcon, MuteIcon, FlagIcon, ShieldIcon, DownloadIcon, BookmarkIcon } from './ReelsIcons';
 
-const API_BASE = 'http://localhost:5000/api';
-const getToken = () => localStorage.getItem('token') || localStorage.getItem('authToken') || '';
-
+const API_BASE = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "") + "/api";
 const REPORT_REASONS = [
   { id: 'inappropriate', label: 'Inappropriate content',  emoji: '🚫' },
   { id: 'harassment',    label: 'Harassment or bullying', emoji: '😡' },
@@ -29,14 +27,12 @@ const Row = ({ icon, label, sub, labelStyle = {}, onClick, right, danger }) => (
       display: 'flex', alignItems: 'center', gap: 14,
       background: 'none', border: 'none',
       borderBottom: '1px solid rgba(255,255,255,0.04)',
-      padding: '15px 0', cursor: 'pointer', textAlign: 'left', width: '100%',
-    }}
+      padding: '15px 0', cursor: 'pointer', textAlign: 'left', width: '100%'}}
   >
     <div style={{
       width: 40, height: 40, borderRadius: 12, flexShrink: 0,
       background: danger ? 'rgba(224,85,85,0.1)' : 'rgba(255,255,255,0.05)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
+      display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
       {icon}
     </div>
     <div style={{ flex: 1 }}>
@@ -50,8 +46,7 @@ const Row = ({ icon, label, sub, labelStyle = {}, onClick, right, danger }) => (
 export const PrivacyMenu = ({
   post, isMuted, user, speed,
   onNotInterested, onMute, onReport, onBlock,
-  onDownload, onSave, onViewProfile, onToggleSpeedControl, onClose,
-}) => {
+  onDownload, onSave, onViewProfile, onToggleSpeedControl, onClose}) => {
   const [view, setView] = useState('main'); // main | report | content | privacy | about
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [reportDone, setReportDone] = useState(false);
@@ -69,9 +64,8 @@ export const PrivacyMenu = ({
   const apiPost = async (path, body = {}) => {
     const res = await fetch(`${API_BASE}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-      body: JSON.stringify(body),
-    });
+      headers: { 'Content-Type': 'application/json'},
+      body: JSON.stringify(body)});
     return res.json();
   };
 
@@ -166,8 +160,7 @@ export const PrivacyMenu = ({
                       width: '100%', background: 'none', border: 'none',
                       borderBottom: i < REPORT_REASONS.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
                       padding: '14px 16px', cursor: reportSubmitting ? 'wait' : 'pointer',
-                      opacity: reportSubmitting ? 0.6 : 1,
-                    }}
+                      opacity: reportSubmitting ? 0.6 : 1}}
                   >
                     <span style={{ fontSize: 20, flexShrink: 0 }}>{r.emoji}</span>
                     <span style={{ fontSize: 14, color: '#fff', fontWeight: 400 }}>{r.label}</span>

@@ -18,6 +18,13 @@ export const BottomSection = ({
 }) => {
   if (!post) return null;
 
+  const captionText = (post.caption || post.content?.caption || "").trim();
+  const rawTags = post.tags || post.content?.tags || post.hashtags || [];
+  const postTags = (Array.isArray(rawTags) && rawTags.length > 0)
+    ? rawTags
+    : (captionText.match(/#[\p{L}\p{N}_]+/gu) || []).map(t => t.slice(1));
+
+
   const isSelf = post.creatorId === user?.id;
   const creatorRespects = isSelf
     ? (user?.respects || 0)
@@ -43,10 +50,13 @@ export const BottomSection = ({
   };
   const rankStyle = RANK_COLORS[rankKey] || {};
 
-  const renderCaption = () => {
-    if (!post.caption) return null;
-    const hashtags = post.caption.match(/#\w+/g) || [];
-    const cleanCaption = post.caption.replace(/#\w+/g, '').trim();
+  const renderCaption = (captionText, postTags) => {
+    if (post?.contentType === 'text' || post?.type === 'text') return null;
+    if (!captionText) return null;
+
+    const displayCaption = expandedCaption || captionText.length <= 100 
+      ? captionText 
+      : captionText.substring(0, 100) + '...';
 
     return (
       <div 
@@ -57,40 +67,53 @@ export const BottomSection = ({
         }}
       >
         <p className={`caption-text ${expandedCaption ? 'expanded' : ''}`}>
-          {expandedCaption ? cleanCaption : (cleanCaption.length > 100 ? cleanCaption.substring(0, 100) + '...' : cleanCaption)}
+          {displayCaption.split(/(#\w+)/g).map((part, index) => 
+            part.startsWith('#') ? (
+              <span 
+                key={index} 
+                className="hashtag" 
+                style={{ fontWeight: 600, cursor: 'pointer' }}
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  onTagClick(part.slice(1)); 
+                }}
+              >
+                {part}
+              </span>
+            ) : (
+              part
+            )
+          )}
         </p>
-        
-        {cleanCaption.length > 100 && (
+        {captionText.length > 100 && (
           <button 
-            type="button" 
-            onClick={(e) => { 
-              e.stopPropagation(); 
-              onToggleCaption(); 
-            }} 
+            type="button"
             className="more-less-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCaption();
+            }}
           >
-            {expandedCaption ? 'Less' : 'More'}
+            {expandedCaption ? 'less' : 'more'}
           </button>
         )}
         
-        {hashtags.length > 0 && (
+        {postTags && postTags.length > 0 && (
           <div className="hashtags">
-            {hashtags.map((tag, i) => (
+            {postTags.map((tag, i) => (
               <span 
-                key={i} 
-                className="hashtag" 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  onTagClick(tag.slice(1)); 
-                }}
+                key={i}
+                className="hashtag"
+                onClick={(e) => { e.stopPropagation(); onTagClick(tag.replace('#', '')); }}
               >
-                {tag}
+                #{tag.replace('#', '')}
               </span>
             ))}
           </div>
         )}
       </div>
     );
+
   };
 
   return (
@@ -140,7 +163,7 @@ export const BottomSection = ({
       </div>
 
       {/* Caption */}
-      {renderCaption()}
+      {renderCaption(captionText, postTags)}
 
       {/* Audio row */}
       <div

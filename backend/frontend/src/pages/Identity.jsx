@@ -1,22 +1,23 @@
 import { useContext } from "react";
 import { UserContext } from "../context/UserContext";
-import { getRank, getNextRankTarget, getProgress } from "../utils/rankSystem";
+import { getRank, getRespectsForNextLevel, getRankProgress } from "../utils/rankSystem";
 
 const Identity = () => {
 
   const { user, posts } = useContext(UserContext);
 
-  const myPosts = posts.filter(
-    (p) => p.creatorId === user.id
+  const myPosts = (posts || []).filter(
+    (p) => p.creatorId === user?.id
   );
 
   const totalRespects = myPosts.reduce(
-    (sum, p) => sum + p.totalRespects,
+    (sum, p) => sum + (p.totalRespects || 0),
     0
   );
-  const  rank = getRank(totalRespects);
-  const nextTarget = getNextRankTarget(totalRespects);
-  const progress = getProgress(totalRespects);
+  const rank = getRank(totalRespects);
+  const level = rank?.level ?? 1;
+  const { nextLevel: nextTarget } = getRespectsForNextLevel(totalRespects);
+  const progress = getRankProgress(totalRespects);
 
   return (
     <div className="identity-page">
@@ -30,7 +31,7 @@ const Identity = () => {
         Joined Since: {user.joined}
       </p>
 
-      <h3>{rank}</h3>
+      <h3>{rank?.title || rank}</h3>
 
       {/* Stats */}
       <div className="identity-stats">
@@ -38,7 +39,7 @@ const Identity = () => {
         <h3>{totalRespects} Total Respects</h3>
         <div className="rank-box">
           <p>Level {level}</p>
-          <p>{rank}</p>
+          <p>{rank?.title}</p>
         </div>
 
         <div>
@@ -62,7 +63,7 @@ const Identity = () => {
       </div>
       <div className="rank-section">
         <div className="rank-row">
-          <span className="rank-name">{rank}</span>
+          <span className="rank-name">{rank?.title}</span>
 
           {nextTarget && (
             <span className="rank-target">

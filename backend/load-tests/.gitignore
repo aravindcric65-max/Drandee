@@ -1,0 +1,5 @@
+# Artillery report outputs — never commit these
+load-tests/reports/
+
+# Local load test credentials — never commit
+.env.loadtest

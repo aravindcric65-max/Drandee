@@ -1,14 +1,18 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
+import { UserContext } from "../context/UserContext";
 import DefaultAvatar from "../components/DefaultAvatar";
 import { calculateRank, getRankProgress, getRespectsForNextLevel, formatRespects, LEVELS } from "../utils/badgeSystem";
+import { determineContentType } from '../utils/contentType';
 import Navbar from "../components/Navbar";
 import LinkInBio from "../components/LinkInBio";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ScanLine } from "lucide-react";
+import { Html5Qrcode } from "html5-qrcode";
 import DrandeeWordmark from '../components/brand/DrandeeWordmark';
 import DrandeeLogo from '../components/brand/DrandeeLogo';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion } from 'framer-motion';
+import { ProfileContentViewer } from '../components/profile/ProfileContentViewer';
 
 /* ─── data ───────────────────────────────────────────── */
 const NICHES = [
@@ -49,75 +53,116 @@ const QRView = ({ userId, size = 196 }) => {
 };
 
 /* ══════════════════════════════════════════════════════ */
-const ProfilePostViewer = ({ posts, initialIndex, onClose }) => {
-  const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const containerRef = useRef(null);
+
+
+/* ─── QR Scanner ─────────────────────────────────────── */
+const QRScannerOverlay = ({ onClose, onSuccess }) => {
+  const [scanError, setScanError] = useState(null);
+  const [scanStatus, setScanStatus] = useState("Requesting camera access...");
+  const hasScanned = useRef(false);
+  const unmountedRef = useRef(false);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowUp') {
-        setCurrentIndex(prev => Math.max(0, prev - 1));
-        e.preventDefault();
-      }
-      if (e.key === 'ArrowDown') {
-        setCurrentIndex(prev => Math.min(posts.length - 1, prev + 1));
-        e.preventDefault();
+    let html5QrCode = null;
+
+    const start = async () => {
+      try {
+        html5QrCode = new Html5Qrcode("qr-reader-container");
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            if (hasScanned.current) return; // prevent duplicate callbacks
+            // Validate: accept canonical drandee.app/profile/:id or drandee.app/creator/:id URLs
+            const match = decodedText.match(
+              /^https?:\/\/(?:www\.)?drandee\.app\/(?:profile|creator)\/([a-zA-Z0-9_-]+)$/
+            );
+            if (match && match[1]) {
+              hasScanned.current = true;
+              onSuccess(match[1]); // stop camera then navigate via Profile
+            } else {
+              // Keep camera live; show transient error
+              if (!unmountedRef.current) {
+                setScanError("Not a valid Drandee profile QR code.");
+                setTimeout(() => {
+                  if (!unmountedRef.current) setScanError(null);
+                }, 3000);
+              }
+            }
+          },
+          () => {} // ignore routine per-frame decode failures
+        );
+        if (!unmountedRef.current) setScanStatus("");
+      } catch (err) {
+        if (!unmountedRef.current) {
+          const m = (err?.message || "").toLowerCase();
+          if (m.includes("permission")) {
+            setScanError("Camera permission denied. Please allow camera access and try again.");
+          } else if (m.includes("not found") || m.includes("no camera") || m.includes("device")) {
+            setScanError("No camera found on this device or browser.");
+          } else {
+            setScanError("Could not start camera: " + (err?.message || "Unknown error."));
+          }
+          setScanStatus("");
+        }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [posts.length, onClose]);
 
-  useEffect(() => {
-    if (containerRef.current && containerRef.current.children[currentIndex]) {
-      containerRef.current.children[currentIndex].scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [currentIndex]);
+    start();
 
-  const handleScroll = (e) => {
-    const container = e.target;
-    const index = Math.round(container.scrollTop / window.innerHeight);
-    if (index !== currentIndex) {
-      setCurrentIndex(index);
-    }
-  };
+    return () => {
+      unmountedRef.current = true;
+      if (html5QrCode) {
+        if (html5QrCode.isScanning) {
+          html5QrCode.stop().then(() => { try { html5QrCode.clear(); } catch (_) {} }).catch(() => {});
+        } else {
+          try { html5QrCode.clear(); } catch (_) {}
+        }
+      }
+    };
+  }, [onSuccess]);
 
   return (
     <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: '#000', zIndex: 9999, overflowY: 'scroll', scrollSnapType: 'y mandatory', overscrollBehaviorY: 'contain'
-    }} ref={containerRef} onScroll={handleScroll}>
-      
-      <div style={{ position: 'fixed', top: 'max(env(safe-area-inset-top), 20px)', left: 0, right: 0, display: 'flex', justifyContent: 'space-between', padding: '0 16px', zIndex: 10000, pointerEvents: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <DrandeeLogo className="w-8 h-8" />
-          <span style={{ color: '#fff', fontSize: 14, fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
-            {currentIndex + 1} / {posts.length}
-          </span>
+      position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.96)',
+      zIndex: 999999, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center'
+    }}>
+      <div style={{ width: '100%', maxWidth: 420, padding: 24 }}>
+        <div style={{ color: '#fff', textAlign: 'center', fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
+          Scan Drandee QR Code
         </div>
-        <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', width: 36, height: 36, borderRadius: '50%', pointerEvents: 'auto', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+        {scanStatus ? (
+          <div style={{ color: '#aaa', textAlign: 'center', fontSize: 14, marginBottom: 16 }}>{scanStatus}</div>
+        ) : (
+          <div style={{ color: '#666', textAlign: 'center', fontSize: 13, marginBottom: 16 }}>
+            Point at a Drandee profile QR code
+          </div>
+        )}
+        <div
+          id="qr-reader-container"
+          style={{ width: '100%', borderRadius: 16, overflow: 'hidden', background: '#111', minHeight: 280 }}
+        />
+        {scanError && (
+          <div style={{
+            marginTop: 14, padding: '12px 16px',
+            background: 'rgba(255,59,48,0.15)', border: '1px solid #FF3B30',
+            color: '#FF3B30', borderRadius: 10, textAlign: 'center', fontSize: 14
+          }}>
+            {scanError}
+          </div>
+        )}
+        <button
+          onClick={onClose}
+          style={{
+            marginTop: 22, width: '100%', padding: '13px',
+            background: '#222', color: '#fff', border: '1px solid #444',
+            borderRadius: 12, fontWeight: 600, fontSize: 16, cursor: 'pointer'
+          }}
+        >
+          Cancel
+        </button>
       </div>
-
-      {posts.map((post, i) => (
-        <div key={post.id || i} style={{ width: '100vw', height: '100vh', scrollSnapAlign: 'start', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {Math.abs(i - currentIndex) <= 2 ? (
-            post.videoUrl?.trim() ? (
-              <video src={post.videoUrl} autoPlay={i === currentIndex} muted loop playsInline style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            ) : post.image ? (
-              <img src={post.image} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="" />
-            ) : post.text ? (
-              <div style={{ padding: 40, color: '#fff', fontSize: 24, textAlign: 'center' }}>{post.text}</div>
-            ) : (
-              <div style={{ width: '100%', height: '100%', background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
-                <span style={{color: '#fff'}}>Post Media</span>
-              </div>
-            )
-          ) : (
-             <div style={{ width: '100%', height: '100%', background: '#111' }} />
-          )}
-        </div>
-      ))}
     </div>
   );
 };
@@ -127,8 +172,12 @@ const Profile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  const [localUser, setLocalUser] = useState(() => JSON.parse(localStorage.getItem("user") || "{}"));
-  const user = localUser;
+  const { user: contextUser } = useContext(UserContext) || {};
+  const [localUser, setLocalUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; }
+  });
+  // Use context user if available, fall back to localStorage for SSR/initial render
+  const user = (contextUser && contextUser.id) ? contextUser : localUser;
   const targetId = id || user?.id;
   const [viewingPostIndex, setViewingPostIndex] = useState(null);
 
@@ -147,10 +196,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`/api/user/${targetId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await fetch(`/api/user/${targetId}`);
         const data = await res.json();
         if (data.success) {
           setProfileData(data.user);
@@ -165,10 +211,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`/api/posts/user/${targetId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await fetch(`/api/posts/user/${targetId}`);
         const data = await res.json();
         if (data.success) {
           setPosts(data.posts || []);
@@ -206,17 +249,55 @@ const Profile = () => {
   const crName    = isOwn ? (user?.name || "") : (crPosts[0]?.creatorName || "Unknown");
   const [isFollowing, setIsFollowing] = useState(false); // UI state
   const [isFollowingLoading, setIsFollowingLoading] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+
+  // Sync real follower counts from profileData
+  useEffect(() => {
+    if (profileData) {
+      setFollowerCount(profileData.followersCount || 0);
+      setFollowingCount(profileData.followingCount || 0);
+    } else if (user && isOwn) {
+      setFollowerCount(user.followersCount || 0);
+      setFollowingCount(user.followingCount || 0);
+    }
+  }, [profileData, user, isOwn]);
+
+  // Check if current user is following the target profile
+  useEffect(() => {
+    if (!isOwn && targetId && user?.id) {
+      fetch(`/api/user/${targetId}/followers?limit=100`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && Array.isArray(data.followers)) {
+            setIsFollowing(data.followers.some(f => String(f.id) === String(user.id)));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOwn, targetId, user?.id]);
 
   const handleFollowToggle = async () => {
-    if (isFollowingLoading) return;
+    if (isFollowingLoading || !user?.id) return;
     setIsFollowingLoading(true);
     const prev = isFollowing;
     setIsFollowing(!prev);
+    setFollowerCount(c => prev ? Math.max(0, c - 1) : c + 1);
     try {
-      // Mock API transit time
-      await new Promise(r => setTimeout(r, 600)); 
+      const method = prev ? 'DELETE' : 'POST';
+      const res = await fetch(`/api/user/follow/${targetId}`, { method, headers: { 'Content-Type': 'application/json' } });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        // Revert on failure
+        setIsFollowing(prev);
+        setFollowerCount(c => prev ? c + 1 : Math.max(0, c - 1));
+      } else {
+        // Use server-returned counts if available
+        if (typeof data.followersCount === 'number') setFollowerCount(data.followersCount);
+      }
     } catch (err) {
       setIsFollowing(prev);
+      setFollowerCount(c => prev ? c + 1 : Math.max(0, c - 1));
     } finally {
       setIsFollowingLoading(false);
     }
@@ -224,6 +305,7 @@ const Profile = () => {
 
   /* sheets: null | "edit"|"share"|"qr"|"followers"|"following"|"starred"|"picOpts" */
   const [sheet, setSheet]       = useState(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [gridTab, setGridTab]   = useState("posts");
   const lpTimer                  = useRef(null);
   const shareBusy                = useRef(false);
@@ -258,12 +340,10 @@ const Profile = () => {
     
     setIsSaving(true);
     try {
-      const currentToken = localStorage.getItem('token');
       const res = await fetch("/api/settings/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentToken}`
         },
         body: JSON.stringify({
           name: eN.trim(),
@@ -298,25 +378,16 @@ const Profile = () => {
     const file = e.target.files[0];
     if (!file) return;
     
-    const currentToken = localStorage.getItem('token');
     const formData = new FormData();
     formData.append("avatar", file);
     try {
       const res = await fetch("/api/upload/avatar", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${currentToken}` },
         body: formData
       });
       const data = await res.json();
       if (data.success) {
-        let finalUrl = data.url;
-        // Foolproof fix: force the backend URL if the server returns frontend URL
-        if (finalUrl && finalUrl.includes('localhost:3000/uploads/')) {
-          finalUrl = finalUrl.replace('localhost:3000', 'localhost:5000');
-        } else if (finalUrl && finalUrl.startsWith('/uploads/')) {
-          finalUrl = `http://localhost:5000${finalUrl}`;
-        }
-        setEPic(finalUrl);
+        setEPic(data.url);
       } else {
         alert(data.error?.message || "Upload failed");
       }
@@ -330,14 +401,12 @@ const Profile = () => {
     if (!file) return;
     
     setSheet(null);
-    const currentToken = localStorage.getItem('token');
     const formData = new FormData();
     formData.append("avatar", file);
     try {
       // 1. Upload the avatar
       const res = await fetch("/api/upload/avatar", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${currentToken}` },
         body: formData
       });
       const data = await res.json();
@@ -346,22 +415,14 @@ const Profile = () => {
         return;
       }
       
-      let finalUrl = data.url;
-      if (finalUrl && finalUrl.includes('localhost:3000/uploads/')) {
-        finalUrl = finalUrl.replace('localhost:3000', 'localhost:5000');
-      } else if (finalUrl && finalUrl.startsWith('/uploads/')) {
-        finalUrl = `http://localhost:5000${finalUrl}`;
-      }
-      
       // Cache bust the new avatar
-      finalUrl = `${finalUrl}?v=${Date.now()}`;
+      const finalUrl = `${data.url}?v=${Date.now()}`;
       
       // 2. Instantly save it to backend
       const putRes = await fetch("/api/settings/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentToken}`
         },
         body: JSON.stringify({
           name: user?.name || "",
@@ -433,15 +494,22 @@ const Profile = () => {
     return String(n);
   };
 
+  /* Profile Customization */
+  const displayUser = isOwn ? user : (profileData || {});
+  const isVerified = displayUser.isVerified || displayUser.is_verified;
+
   /* grid data */
-  const videoPosts   = crPosts.filter((p) => p.post_type === 'video' || p.videoUrl?.trim());
-  const textPosts    = crPosts.filter((p) => p.post_type === 'text');
-  const imgPosts     = crPosts.filter((p) => p.post_type === 'photo' || p.post_type === 'image' || (!p.videoUrl?.trim() && p.post_type !== 'text'));
+  const videoPosts   = crPosts.filter((p) => p.content_type === 'video' || determineContentType(p) === 'video');
+  const textPosts    = crPosts.filter((p) => p.content_type === 'text' || determineContentType(p) === 'text');
+  const imgPosts     = crPosts.filter((p) => { 
+    const ct = p.content_type || determineContentType(p); 
+    return ct === 'image' || ct === 'carousel' || ct === 'photo'; 
+  });
   const featPosts    = crPosts.filter((p) => displayUser?.featuredPosts?.includes(p.id));
   
   const gridData     = gridTab === "posts" ? imgPosts : gridTab === "reels" ? videoPosts : gridTab === "text" ? textPosts : featPosts;
 
-  /* mock social graph */
+  /* mock social graph — kept for Star Friends UI only */
   const mockFollowers = [
     { id: "u2", name: "Kavitha", bg: "#534AB7", star: true },
     { id: "u3", name: "Mani",    bg: "#1D7A5F", star: true },
@@ -467,9 +535,6 @@ const Profile = () => {
     );
   }
 
-  /* Profile Customization */
-  const displayUser = isOwn ? user : (profileData || {});
-  const isVerified = displayUser.isVerified || displayUser.is_verified;
   /* ═══════════════════ RENDER ═══════════════════ */
   return (
     <div style={{ ...S.page, background: '#ffffff', color: '#000000' }}>
@@ -541,8 +606,8 @@ const Profile = () => {
           {/* stats */}
           <div style={{...S.statsRow, background: '#f8f9fa', borderRadius: 12, padding: '12px', border: '1px solid #eee'}}>
             <StatBox label="Posts" value={crPosts.length} onClick={() => {}} color="#000" labelColor="#666" />
-            <StatBox label="Followers" value={fmt(mockFollowers.length)} onClick={() => setSheet("followers")} border color="#000" labelColor="#666" />
-            <StatBox label="Following" value={fmt(mockFollowers.length - 2)} onClick={() => setSheet("following")} border color="#000" labelColor="#666" />
+            <StatBox label="Followers" value={fmt(followerCount)} onClick={() => setSheet("followers")} border color="#000" labelColor="#666" />
+            <StatBox label="Following" value={fmt(followingCount)} onClick={() => setSheet("following")} border color="#000" labelColor="#666" />
             <StatBox label="Respects" value={fmt(totalResp)} onClick={() => {}} border color="#000" labelColor="#666" />
           </div>
 
@@ -648,7 +713,11 @@ const Profile = () => {
               {crPosts.filter(p => displayUser.featuredPosts.includes(p.id)).map(fp => (
                 <div 
                   key={`feat-${fp.id}`} 
-                  onClick={() => setViewingPostIndex(crPosts.indexOf(fp))}
+                  onClick={() => {
+                    setGridTab("featured");
+                    const idx = featPosts.findIndex(p => p.id === fp.id);
+                    setViewingPostIndex(idx >= 0 ? idx : 0);
+                  }}
                   style={{ width: 120, height: 160, borderRadius: 12, flexShrink: 0, overflow: 'hidden', position: 'relative', cursor: 'pointer' }}
                 >
                   <img src={fp.thumbnailUrl || fp.imageUrl} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -666,7 +735,7 @@ const Profile = () => {
         <div style={S.gridSection}>
           <div style={S.gridTabRow}>
             {[
-              { id: "posts",    icon: <GridIco color={gridTab === "posts" ? "#000" : "#888"} />,    label: "Posts",    count: imgPosts.length },
+              { id: "posts",    icon: <GridIco color={gridTab === "posts" ? "#000" : "#888"} />,    label: "Images",   count: imgPosts.length },
               { id: "reels",    icon: <ReelIco color={gridTab === "reels" ? "#000" : "#888"} />,    label: "Reels",    count: videoPosts.length },
               { id: "text",     icon: <TypeIco color={gridTab === "text" ? "#000" : "#888"} />,    label: "Text",     count: textPosts.length },
               { id: "featured", icon: <StarIco color={gridTab === "featured" ? "#000" : "#888"} />,    label: "Featured", count: featPosts.length },
@@ -690,7 +759,7 @@ const Profile = () => {
             {gridData.length === 0 ? (
               <div style={S.noContent}>
                 <span style={S.noTxt}>
-                  {gridTab === "posts" ? "No posts yet"
+                  {gridTab === "posts" ? "No images yet"
                    : gridTab === "reels" ? "No reels yet"
                    : gridTab === "text" ? "No text posts yet"
                    : "No featured posts yet"}
@@ -699,8 +768,16 @@ const Profile = () => {
             ) : (
               gridData.map((post, i) => (
                 <div key={post.id} style={S.cell} onClick={() => setViewingPostIndex(i)}>
-                  {post.videoUrl?.trim() ? (
-                    <video src={post.videoUrl} style={S.cellMedia} muted playsInline />
+                  {determineContentType(post) === 'video' ? (
+                    <video src={post.videoUrl || post.content?.videoUrl} style={S.cellMedia} muted playsInline poster={post.thumbnailUrl || post.content?.thumbnailUrl || undefined} />
+                  ) : (determineContentType(post) === 'image' || determineContentType(post) === 'carousel') ? (
+                    <img src={post.imageUrl || post.content?.imageUrl} style={S.cellMedia} alt={post.caption || ''} loading="lazy" />
+                  ) : determineContentType(post) === 'text' ? (
+                    <div style={{ ...S.cellBg, background: '#1a1a2e', flexDirection: 'column', padding: '8px', overflow: 'hidden' }}>
+                      <span style={{ color: 'rgba(255,255,255,0.88)', fontSize: 11, lineHeight: 1.4, textAlign: 'center', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', wordBreak: 'break-word' }}>
+                        {post.content?.text || post.caption || post.overlayText || ''}
+                      </span>
+                    </div>
                   ) : (
                     <div style={{ ...S.cellBg, background: CELL_BG[i % CELL_BG.length] }}>
                       {gridTab === "reels" ? <PlayIco /> : <ImgIco />}
@@ -727,10 +804,16 @@ const Profile = () => {
       </div>
 
       {viewingPostIndex !== null && (
-        <ProfilePostViewer 
-          posts={gridData} 
-          initialIndex={viewingPostIndex} 
-          onClose={() => setViewingPostIndex(null)} 
+        <ProfileContentViewer
+          posts={gridData}
+          selectedPostId={gridData[viewingPostIndex]?.id}
+          tab="all"
+          onClose={() => setViewingPostIndex(null)}
+          isOwn={isOwn}
+          onDelete={(deletedId) => {
+            setPosts(prev => prev.filter(p => p.id !== deletedId));
+            setViewingPostIndex(null);
+          }}
         />
       )}
 
@@ -837,7 +920,7 @@ const Profile = () => {
                   </div>
                   <span style={S.accActive}>Active</span>
                 </div>
-                <button type="button" style={S.addAccBtn}>
+                <button type="button" style={S.addAccBtn} onClick={() => { setSheet(null); navigate('/settings'); }}>
                   <PlusSmIco /> Add account
                 </button>
               </div>
@@ -891,7 +974,18 @@ const Profile = () => {
       {sheet === "qr" && (
         <Ov onClose={() => setSheet(null)}>
           <div style={S.hdl} />
-          <span style={S.shTitle}>Your QR code</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px 4px' }}>
+            <span style={S.shTitle}>Your QR code</span>
+            <button
+              type="button"
+              onClick={() => setIsScannerOpen(true)}
+              aria-label="Scan a QR Code"
+              title="Scan QR Code"
+              style={{ background: 'none', border: 'none', color: '#333', cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center' }}
+            >
+              <ScanLine size={24} />
+            </button>
+          </div>
           <p style={S.qrSub}>Scan to open this profile instantly — unique to your account</p>
           <div style={S.qrWrap}>
             <div className="flex flex-col items-center">
@@ -1046,6 +1140,16 @@ const Profile = () => {
       )}
 
       <Navbar />
+      {isScannerOpen && (
+        <QRScannerOverlay
+          onClose={() => setIsScannerOpen(false)}
+          onSuccess={(scannedProfileId) => {
+            setIsScannerOpen(false);
+            setSheet(null);
+            navigate(`/profile/${scannedProfileId}`);
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -1171,11 +1275,11 @@ const SharePfIco   = ({ color }) => si("M15 5L20 10M20 10L15 15M20 10H9C6.79 10 
 
 /* ─── styles ─────────────────────────────────────────── */
 const S = {
-  page:     { background:"#ffffff", minHeight:"100vh", color:"#000000", fontFamily:"-apple-system,system-ui,sans-serif", display:"flex", flexDirection:"column" },
+  page:     { background:"#ffffff", minHeight:"100vh", color:"#000000", fontFamily:"-apple-system,system-ui,sans-serif" },
   topbar:   { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 16px 8px", position:"sticky", top:0, background:"#ffffff", zIndex:50, borderBottom:"1px solid #eeeeee" },
   tbTitle:  { fontSize:15, fontWeight:"600", color:"#000", letterSpacing:"0.2px" },
   iBtn:     { width:34, height:34, background:"none", border:"none", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0 },
-  scroll:   { flex:1, overflowY:"auto", paddingBottom:"calc(env(safe-area-inset-bottom) + 80px)" },
+  scroll:   { paddingBottom:"calc(env(safe-area-inset-bottom) + 80px)" },
   notFound: { display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, minHeight:"60vh" },
   notFoundTxt:{ fontSize:14, color:"#888" },
   goBack:   { background:"#f0f0f0", border:"1px solid #e0e0e0", borderRadius:10, padding:"9px 20px", color:"#000", fontSize:13, cursor:"pointer" },
@@ -1213,10 +1317,10 @@ const S = {
   cell:       { aspectRatio:"1", position:"relative", cursor:"pointer", overflow:"hidden", background: "#f5f5f5" },
   cellMedia:  { position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" },
   cellBg:     { width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" },
-  cellOv:     { position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)", display:"flex", flexDirection:"column", justifyContent:"flex-end", padding:"6px" },
+  cellOv:     { position:"absolute", bottom:0, left:0, right:0, background:"linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)", padding:"6px", display:"flex", alignItems:"center", justifyContent:"flex-end", gap:8 },
   cellRank:   { fontSize:11, color:"#FFD700", fontWeight:"700", marginBottom:2 },
   cellStats:  { display:"flex", alignItems:"center", gap:4 },
-  cStat:      { fontSize:10, color:"rgba(255,255,255,0.9)" },
+  cStat:      { fontSize:10, color:"#fff", fontWeight:700, lineHeight:1 },
   noContent:  { gridColumn:"1/-1", padding:"40px 0", display:"flex", justifyContent:"center" },
   noTxt:      { fontSize:14, color:"#888", fontWeight: "500" },
 

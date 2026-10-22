@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { parseApiResponse } from '../../utils/apiHelper';
 
 const AudioLibrary = ({ onSelectAudio, onClose }) => {
   const [audios, setAudios] = useState([]);
@@ -11,8 +12,8 @@ const AudioLibrary = ({ onSelectAudio, onClose }) => {
 
   const fetchAudios = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/audio/library');
-      const data = await response.json();
+      const response = await fetch('/api/audio/library');
+      const data = await parseApiResponse(response, "Fetch Audios");
       if (data.success) {
         setAudios(data.audios);
       }
@@ -27,8 +28,8 @@ const AudioLibrary = ({ onSelectAudio, onClose }) => {
     setSearchQuery(query);
     if (query.length > 2) {
       try {
-        const response = await fetch(`http://localhost:5000/api/audio/search?q=${query}`);
-        const data = await response.json();
+        const response = await fetch(`/api/audio/search?q=${encodeURIComponent(query)}`);
+        const data = await parseApiResponse(response, "Search Audios");
         if (data.success) {
           setAudios(data.audios);
         }

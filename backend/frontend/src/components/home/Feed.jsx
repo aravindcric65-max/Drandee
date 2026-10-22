@@ -1,10 +1,17 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import FeedItem from './FeedItem';
 import FeedSkeleton from './FeedSkeleton';
 import FeedError from './FeedError';
 import FeedEmpty from './FeedEmpty';
 import FeedEnd from './FeedEnd';
+import { applyEngagementEventToPosts } from '../../utils/engagementSync';
+import { UserContext } from '../../context/UserContext';
+
+const feedCache = {
+  for_you: { posts: null, cursor: null, hasMore: true, scrollTop: 0 },
+  following: { posts: null, cursor: null, hasMore: true, scrollTop: 0 },
+  local: { posts: null, cursor: null, hasMore: true, scrollTop: 0 }};
 
 export const Feed = ({ 
   mode = 'for_you', 
@@ -15,16 +22,16 @@ export const Feed = ({
   onSave, 
   onFollow, 
   onMore,
-  token,
   hiddenPosts = [],
   interactionProps
 }) => {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useContext(UserContext) || {};
+  const [posts, setPosts] = useState(() => feedCache[mode]?.posts || []);
+  const [loading, setLoading] = useState(() => !feedCache[mode]?.posts);
   const [error, setError] = useState(false);
   const [networkLow, setNetworkLow] = useState(false);
-  const [cursor, setCursor] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
+  const [cursor, setCursor] = useState(() => feedCache[mode]?.cursor || null);
+  const [hasMore, setHasMore] = useState(() => feedCache[mode]?.hasMore ?? true);
   const [activePostIndex, setActivePostIndex] = useState(0);
 
   const observerRef = useRef(null);
@@ -32,11 +39,18 @@ export const Feed = ({
   const trackedImpressions = useRef(new Set());
   const feedContainerRef = useRef(null);
 
+  // Keep a mutable ref of state for stable callbacks and observers
+  const stateRef = useRef({ posts, hasMore, cursor });
+  useEffect(() => {
+    stateRef.current = { posts, hasMore, cursor };
+  }, [posts, hasMore, cursor]);
+
   // Memoize hidden posts set for faster lookup
   const hiddenPostsSet = useMemo(() => new Set(hiddenPosts), [hiddenPosts]);
 
   const fetchFeed = useCallback(async (isLoadMore = false, retryCount = 0) => {
-    if (loadingRef.current || (!hasMore && isLoadMore)) return;
+    const currentState = stateRef.current;
+    if (loadingRef.current || (!currentState.hasMore && isLoadMore)) return;
     
     loadingRef.current = true;
     if (!isLoadMore && retryCount === 0) setLoading(true);
@@ -45,19 +59,12 @@ export const Feed = ({
     try {
       const url = new URL('/api/home/feed', window.location.origin);
       url.searchParams.append('mode', mode);
-      if (isLoadMore && cursor) {
-        url.searchParams.append('cursor', cursor);
+      if (isLoadMore && currentState.cursor) {
+        url.searchParams.append('cursor', currentState.cursor);
       }
       url.searchParams.append('limit', '20');
 
-      // Always read token from localStorage as fallback
-      const authToken = token || localStorage.getItem('token') || '';
-      const headers = {};
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-      }
-
-      const res = await fetch(url.toString(), { headers });
+      const res = await fetch(url.toString());
       if (!res.ok) {
         if (res.status === 401) {
           localStorage.removeItem('token');
@@ -83,9 +90,26 @@ export const Feed = ({
       const data = await res.json();
 
       if (data.success) {
-        setPosts(prev => isLoadMore ? [...prev, ...data.data.items] : data.data.items);
+        setPosts(prev => {
+          let newPosts;
+          if (isLoadMore) {
+            // Deduplicate incoming posts that are already in the feed
+            const existingIds = new Set(prev.map(p => p.id));
+            const uniqueNew = data.data.items.filter(p => !existingIds.has(p.id));
+            newPosts = [...prev, ...uniqueNew];
+          } else {
+            newPosts = data.data.items;
+          }
+          if (feedCache[mode]) feedCache[mode].posts = newPosts;
+          return newPosts;
+        });
         setCursor(data.data.nextCursor);
         setHasMore(data.data.hasMore);
+        
+        if (feedCache[mode]) {
+          feedCache[mode].cursor = data.data.nextCursor;
+          feedCache[mode].hasMore = data.data.hasMore;
+        }
       } else {
         throw new Error(data.error?.message || 'Failed to fetch feed');
       }
@@ -106,18 +130,28 @@ export const Feed = ({
         loadingRef.current = false;
       }
     }
-  }, [mode, cursor, hasMore, token]);
-
-  // Initial fetch on mount or mode change
-  useEffect(() => {
-    setPosts([]);
-    setCursor(null);
-    setHasMore(true);
-    setActivePostIndex(0);
-    trackedImpressions.current = new Set();
-    fetchFeed(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
+
+    // Initial fetch on mount or mode change
+    useEffect(() => {
+      const cached = feedCache[mode];
+      if (cached && cached.posts && cached.posts.length > 0) {
+        setPosts(cached.posts);
+        setCursor(cached.cursor);
+        setHasMore(cached.hasMore);
+        setActivePostIndex(0);
+        trackedImpressions.current = new Set();
+        setLoading(false);
+      } else {
+        setPosts([]);
+        setCursor(null);
+        setHasMore(true);
+        setActivePostIndex(0);
+        trackedImpressions.current = new Set();
+        fetchFeed(false);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode]);
 
   // Intersection Observer for Infinite Scroll & Active Video tracking
   useEffect(() => {
@@ -135,25 +169,28 @@ export const Feed = ({
             setActivePostIndex(index);
             
             // Track impression
-            const postId = posts[index]?.id;
-            if (token && postId && !trackedImpressions.current.has(postId)) {
+            const currentPosts = stateRef.current.posts;
+            const postId = currentPosts[index]?.id;
+            if (postId && trackedImpressions.current && !trackedImpressions.current.has(postId)) {
               trackedImpressions.current.add(postId);
               fetch('/api/home/impression', {
                 method: 'POST',
-                headers: { 
-                  'Content-Type': 'application/json', 
-                  'Authorization': `Bearer ${token}` 
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                   postId: postId, 
                   action: 'scroll_view',
                   dwellTime: 1000
                 })
-              }).catch(() => {});
+              }).catch(() => {
+                // If request failed (e.g. auth not ready), remove from tracked so it can retry
+                if (trackedImpressions.current) {
+                  trackedImpressions.current.delete(postId);
+                }
+              });
             }
 
             // Load more if we are 3 items away from the end
-            if (index >= posts.length - 3 && hasMore) {
+            if (index >= currentPosts.length - 3 && stateRef.current.hasMore) {
               fetchFeed(true);
             }
           }
@@ -166,24 +203,68 @@ export const Feed = ({
     // Listen for new posts
     const handleNewPost = (e) => {
       if (e.detail) {
-        // If mode is 'for_you' or 'local' (or if we want to show it in all feeds immediately)
-        // Add to the top of the feed
+        // For the 'following' feed: only inject the new post if the creator is
+        // someone the current user actually follows. user.following from UserContext
+        // is the canonical client-side follow list, kept in sync with follow/unfollow actions.
+        if (mode === 'following') {
+          const creatorId = e.detail.userId ?? e.detail.user_id;
+          const following = user?.following || [];
+          if (!following.includes(creatorId) && !following.includes(String(creatorId))) {
+            return; // skip — unfollowed creator
+          }
+        }
+
+        // For all other modes, add to the top of the feed
         setPosts(prev => {
           // Check if it already exists
           if (prev.some(p => p.id === e.detail.id)) return prev;
-          return [e.detail, ...prev];
+          const newPosts = [e.detail, ...prev];
+          
+          // Update cache
+          if (feedCache[mode]) {
+            feedCache[mode].posts = newPosts;
+          }
+          
+          return newPosts;
         });
       }
     };
+
+    // Listen for deleted posts
+    const handlePostDeleted = (e) => {
+      const { postId } = e.detail;
+      if (stateRef.current.posts.some(p => p.id === postId)) {
+        setPosts(prev => {
+          const newPosts = prev.filter(p => p.id !== postId);
+          if (feedCache[mode]) {
+            feedCache[mode].posts = newPosts;
+          }
+          return newPosts;
+        });
+      }
+    };
+      
+    const handleEngagement = (e) => {
+      setPosts((prev) => {
+        const newPosts = applyEngagementEventToPosts(prev, e.detail);
+        if (feedCache[mode]) feedCache[mode].posts = newPosts;
+        return newPosts;
+      });
+    };
+      
     window.addEventListener('new_post_published', handleNewPost);
+    window.addEventListener('post_deleted', handlePostDeleted);
+    window.addEventListener('engagement_updated', handleEngagement);
 
     return () => {
       if (observerRef.current) {
         observerRef.current.disconnect();
       }
       window.removeEventListener('new_post_published', handleNewPost);
+      window.removeEventListener('post_deleted', handlePostDeleted);
+      window.removeEventListener('engagement_updated', handleEngagement);
     };
-  }, [posts, hasMore, fetchFeed, token]);
+  }, [mode, fetchFeed, user?.following]);
 
   // Register refs for observer
   const setRef = useCallback((el, index) => {
@@ -203,6 +284,14 @@ export const Feed = ({
     };
   }, []);
 
+  // Restore scroll position when remounted or mode changes
+  React.useLayoutEffect(() => {
+    const cached = feedCache[mode];
+    if (cached && feedContainerRef.current && cached.posts && cached.posts.length > 0) {
+      feedContainerRef.current.scrollTop = cached.scrollTop || 0;
+    }
+  }, [mode]);
+
   // Render states
   if (loading && posts.length === 0) {
     return <FeedSkeleton />;
@@ -219,6 +308,11 @@ export const Feed = ({
   return (
     <div 
       ref={feedContainerRef}
+      onScroll={(e) => {
+        if (feedCache[mode]) {
+          feedCache[mode].scrollTop = e.target.scrollTop;
+        }
+      }}
       className="w-full h-full overflow-y-auto overflow-x-hidden bg-transparent px-3 sm:px-4 md:px-5 pb-24 sm:pb-32 pt-2 sm:pt-3 [scrollbar-color:rgba(185,180,255,0.25)_transparent] [scrollbar-width:thin]"
       role="feed"
       aria-label={`${mode.replace('_', ' ')} feed`}
@@ -243,7 +337,7 @@ export const Feed = ({
           
           return (
             <motion.article 
-              key={`${post.id}-${index}`} 
+              key={post.id} 
               layout
               initial={{ opacity: 0, y: 8, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}

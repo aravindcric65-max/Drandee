@@ -14,9 +14,9 @@ const TABS = [
   { id: 'saved', label: 'Saved' },
 ];
 
-export const TopSection = ({ activeTab, onTabChange, onSearch, onViewsClick, currentPost, scrollCount = 0, user, onBadgeClick }) => {
+export const TopSection = ({ activeTab, onTabChange, onSearch, onViewsClick, currentPost, scrollCount = 0, user, onBadgeClick, selectedCollection, onCollectionChange }) => {
   const friends = Array.isArray(user?.following) ? user.following.slice(0, 8) : [];
-
+  const collections = ['all', ...Array.from(new Set(Object.values(user?.savedCollections || {})))];
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50, padding: '24px 16px 0' }}>
       {/* Tab row */}
@@ -46,8 +46,26 @@ export const TopSection = ({ activeTab, onTabChange, onSearch, onViewsClick, cur
       </div>
 
       {/* Dynamic section */}
+      {activeTab === 'saved' && collections.length > 1 && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 12, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', pointerEvents: 'auto' }}>
+          {collections.map(c => (
+            <div 
+              key={c}
+              onClick={(e) => { e.stopPropagation(); onCollectionChange(c); }}
+              style={{
+                padding: '4px 12px', borderRadius: 16, fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                background: selectedCollection === c ? '#fff' : 'rgba(255,255,255,0.15)',
+                color: selectedCollection === c ? '#000' : '#fff',
+                border: '1px solid rgba(255,255,255,0.1)'
+              }}>
+              {c === 'all' ? 'All Saved' : c}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Friends row — pointer-events auto so taps work */}
-      {friends.length > 0 && (
+      {activeTab === 'friends' && friends.length > 0 && (
         <div style={{ display: 'flex', gap: 12, marginTop: 10, overflowX: 'auto', paddingBottom: 4 }}>
           {friends.map((friendId, i) => (
             <div key={friendId || i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, cursor: 'pointer' }}>

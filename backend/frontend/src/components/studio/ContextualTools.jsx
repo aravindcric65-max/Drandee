@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, Search } from 'lucide-react';
 import { PRESET_FILTERS } from '../../utils/filterEngine';
+import RealCoverSelector from './CoverSelector';
 
 const ContextualPanel = ({ title, onClose, children }) => (
   <motion.div 
@@ -350,13 +351,14 @@ export const SoundPanel = ({ settings, setSettings, onClose }) => {
   );
 };
 
-export const CoverSelector = ({ onClose }) => {
+export const CoverSelector = ({ videoFile, selectedFrame, onChange, onClose }) => {
   return (
     <ContextualPanel title="Cover" onClose={onClose}>
-      <div className="flex flex-col items-center justify-center h-32 text-gray-500 text-sm gap-2">
-        <span>Cover selection coming soon</span>
-        <span className="text-xs">Drag to select a frame from your video</span>
-      </div>
+      <RealCoverSelector 
+        videoFile={videoFile} 
+        selectedFrame={selectedFrame} 
+        onChange={onChange} 
+      />
     </ContextualPanel>
   );
 };

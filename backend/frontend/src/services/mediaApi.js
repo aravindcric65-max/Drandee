@@ -1,3 +1,4 @@
+import { parseApiResponse } from '../utils/apiHelper';
 const API_BASE_URL = '/api';
 
 class MediaApi {
@@ -7,19 +8,14 @@ class MediaApi {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          },
         body: JSON.stringify(metadata),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create media');
-      }
-
-      const data = await response.json();
+      const data = await parseApiResponse(response, "Create Media");
       return {
         success: true,
-        media: data.media,
+        media: data.media || data,
       };
     } catch (error) {
       return {
@@ -35,19 +31,14 @@ class MediaApi {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          },
         body: JSON.stringify(updates),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update media');
-      }
-
-      const data = await response.json();
+      const data = await parseApiResponse(response, "Update Media");
       return {
         success: true,
-        media: data.media,
+        media: data.media || data,
       };
     } catch (error) {
       return {
@@ -63,18 +54,13 @@ class MediaApi {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to publish media');
-      }
-
-      const data = await response.json();
+      const data = await parseApiResponse(response, "Publish Media");
       return {
         success: true,
-        media: data.media,
+        media: data.media || data,
       };
     } catch (error) {
       return {
@@ -90,18 +76,13 @@ class MediaApi {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to save draft');
-      }
-
-      const data = await response.json();
+      const data = await parseApiResponse(response, "Save Draft");
       return {
         success: true,
-        media: data.media,
+        media: data.media || data,
       };
     } catch (error) {
       return {
@@ -114,19 +95,12 @@ class MediaApi {
   async getMediaStatus(mediaId) {
     try {
       const response = await fetch(`${API_BASE_URL}/media/${mediaId}/status`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to get status');
-      }
-
-      const data = await response.json();
+      const data = await parseApiResponse(response, "Get Media Status");
       return {
         success: true,
-        status: data.status,
+        status: data.status || data,
       };
     } catch (error) {
       return {
@@ -140,15 +114,9 @@ class MediaApi {
     try {
       const response = await fetch(`${API_BASE_URL}/media/${mediaId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to delete media');
-      }
-
+      await parseApiResponse(response, "Delete Media");
       return {
         success: true,
       };
@@ -163,19 +131,12 @@ class MediaApi {
   async getMediaById(mediaId) {
     try {
       const response = await fetch(`${API_BASE_URL}/media/${mediaId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to get media');
-      }
-
-      const data = await response.json();
+      const data = await parseApiResponse(response, "Get Media By ID");
       return {
         success: true,
-        media: data.media,
+        media: data.media || data,
       };
     } catch (error) {
       return {
@@ -190,20 +151,13 @@ class MediaApi {
       const response = await fetch(
         `${API_BASE_URL}/media/user/${userId}?page=${page}&limit=${limit}`,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
+          }
       );
 
-      if (!response.ok) {
-        throw new Error('Failed to get user media');
-      }
-
-      const data = await response.json();
+      const data = await parseApiResponse(response, "Get User Media");
       return {
         success: true,
-        media: data.media,
+        media: data.media || data,
         pagination: data.pagination,
       };
     } catch (error) {

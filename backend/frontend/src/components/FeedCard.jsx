@@ -46,12 +46,12 @@ const FeedCard = ({ post, allPosts = [], onRespect }) => {
         playsInline
         style={FS.video}
         onTimeUpdate={(e) => {
-          if (post.endTime && e.target.currentTime >= post.endTime) {
+          if (post?.endTime && e.target.currentTime >= post.endTime) {
             e.target.pause();
           }
         }}
         onLoadedMetadata={(e) => {
-          if (post.startTime) {
+          if (post?.startTime) {
             e.target.currentTime = post.startTime;
           }
         }}
@@ -82,6 +82,22 @@ const FeedCard = ({ post, allPosts = [], onRespect }) => {
         <span style={FS.respectCount}>{post.totalRespects} Respects</span>
       </div>
 
+      {post.caption && (
+        <div style={FS.captionContainer}>
+          <p style={FS.captionText}>
+            {post.caption.split(/(#\w+)/g).map((part, index) => 
+              part.startsWith('#') ? (
+                <span key={index} style={FS.hashtag} onClick={(e) => { e.stopPropagation(); navigate(`/discover?q=${part.slice(1)}`); }}>
+                  {part}
+                </span>
+              ) : (
+                part
+              )
+            )}
+          </p>
+        </div>
+      )}
+
       <div style={{ padding: "0 16px 16px" }}>
         <button
           onClick={handleRespectClick}
@@ -111,6 +127,9 @@ const FS = {
   creatorName: { fontSize: "14.5px", fontWeight: "600", color: "#ffffff", cursor: "pointer" },
   rankTag: { fontSize: "11px", color: "#00e5ff", background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)", padding: "2px 6px", borderRadius: "6px", fontWeight: "600" },
   respectCount: { fontSize: "13px", color: "rgba(255,255,255,0.45)" },
+  captionContainer: { padding: "0 16px 12px", marginTop: "-8px" },
+  captionText: { fontSize: "14px", color: "#d1d1d6", margin: 0, lineHeight: "1.4", wordBreak: "break-word" },
+  hashtag: { color: "#0a84ff", cursor: "pointer", fontWeight: "500" },
   respectBtn: { width: "100%", borderRadius: "12px", padding: "12px 20px", fontSize: "13.5px", fontWeight: "600", color: "#ffffff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s ease", transform: "scale(1)" }
 };
 

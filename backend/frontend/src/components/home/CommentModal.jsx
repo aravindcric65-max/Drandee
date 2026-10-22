@@ -5,8 +5,8 @@ import { SendIcon } from '../reels/ReelsIcons';
 import { useNavigate } from 'react-router-dom';
 import { Pin } from 'lucide-react';
 
-export const CommentModal = ({ isOpen, onClose, postId, postCreatorId }) => {
-  const { user, postComments, addComment, token } = useContext(UserContext) || {};
+export const CommentModal = ({ isOpen, onClose, postId, postCreatorId, dark = false }) => {
+  const { user, postComments, addComment} = useContext(UserContext) || {};
   const [cmtText, setCmtText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
@@ -71,11 +71,8 @@ export const CommentModal = ({ isOpen, onClose, postId, postCreatorId }) => {
 
   const handlePinToggle = async (commentId) => {
     try {
-      const authToken = token || localStorage.getItem('token');
       await fetch(`/api/engagement/comments/${commentId}/pin`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
+        method: 'PUT'});
       // A full app would force refresh the comments array here.
     } catch(err) {
       console.error(err);
@@ -99,17 +96,17 @@ export const CommentModal = ({ isOpen, onClose, postId, postCreatorId }) => {
         <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-4 bg-black/20" onClick={onClose}>
           <motion.div 
             variants={modalVariants} initial="hidden" animate="visible" exit="exit" onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-[420px] h-[60vh] sm:h-[60vh] bg-[var(--bg-primary)] border-t sm:border border-[var(--border)] rounded-t-[28px] sm:rounded-2xl flex flex-col shadow-2xl overflow-hidden relative"
+            className={`w-full sm:max-w-[420px] h-[60vh] sm:h-[60vh] ${dark ? 'bg-[#1a1a1a]' : 'bg-[var(--bg-primary)]'} border-t sm:border ${dark ? 'border-[#252525]' : 'border-[var(--border)]'} rounded-t-[28px] sm:rounded-2xl flex flex-col shadow-2xl overflow-hidden relative`}
           >
-            <div className="w-full pt-4 pb-3 flex flex-col items-center border-b border-[var(--border)] relative shrink-0 bg-[var(--bg-secondary)]">
-              <div className="w-10 h-1.5 bg-white/20 rounded-full mb-3 sm:hidden cursor-pointer" onClick={onClose} />
-              <h3 className="text-[var(--text-primary)] font-bold text-base tracking-wide">Comments</h3>
-              <p className="text-[var(--text-secondary)] text-[11px] mt-1 font-medium">{comments.length} comments</p>
+            <div className={`w-full pt-4 pb-3 flex flex-col items-center border-b ${dark ? 'border-[#252525] bg-[#252525]' : 'border-[var(--border)] bg-[var(--bg-secondary)]'} relative shrink-0`}>
+              <div className="w-10 h-1.5 bg-black/20 rounded-full mb-3 sm:hidden cursor-pointer" onClick={onClose} />
+              <h3 className={`${dark ? 'text-white' : 'text-[var(--text-primary)]'} font-bold text-base tracking-wide`}>Comments</h3>
+              <p className={`${dark ? 'text-white/60' : 'text-[var(--text-secondary)]'} text-[11px] mt-1 font-medium`}>{comments.length} comments</p>
             </div>
             
             <div ref={commentsListRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-5 scroll-smooth">
               {topLevelComments.length === 0 ? (
-                <div className="w-full h-full flex flex-col items-center justify-center text-[var(--text-secondary)] text-sm py-12">
+                <div className={`w-full h-full flex flex-col items-center justify-center ${dark ? 'text-white/40' : 'text-[var(--text-secondary)]'} text-sm py-12`}>
                   <p>No comments yet. Be the first!</p>
                 </div>
               ) : (
@@ -121,14 +118,14 @@ export const CommentModal = ({ isOpen, onClose, postId, postCreatorId }) => {
                       </div>
                       <div className="flex flex-col flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span onClick={() => handleNavigateToProfile(cmt.userId)} className="text-[var(--text-secondary)] text-xs font-semibold cursor-pointer">@{cmt.user}</span>
+                          <span onClick={() => handleNavigateToProfile(cmt.userId)} className={`${dark ? 'text-white/60' : 'text-[var(--text-secondary)]'} text-xs font-semibold cursor-pointer`}>@{cmt.user}</span>
                           {cmt.is_pinned && <Pin size={10} className="text-[var(--primary)] fill-[var(--primary)]" />}
                         </div>
-                        <span className="text-[var(--text-primary)] text-sm mt-0.5 whitespace-pre-wrap">{cmt.text}</span>
+                        <span className={`${dark ? 'text-white' : 'text-[var(--text-primary)]'} text-sm mt-0.5 whitespace-pre-wrap`}>{cmt.text}</span>
                         <div className="flex items-center gap-4 mt-1">
-                          <span className="text-[10px] text-[var(--text-secondary)] cursor-pointer hover:text-white" onClick={() => { setReplyTo(cmt); inputRef.current?.focus(); }}>Reply</span>
+                          <span className={`text-[10px] ${dark ? 'text-white/40 hover:text-white' : 'text-[var(--text-secondary)] hover:text-[#111111]'} cursor-pointer`} onClick={() => { setReplyTo(cmt); inputRef.current?.focus(); }}>Reply</span>
                           {isPostAuthor && (
-                            <span className="text-[10px] text-[var(--text-secondary)] cursor-pointer hover:text-white" onClick={() => handlePinToggle(cmt.id)}>{cmt.is_pinned ? 'Unpin' : 'Pin'}</span>
+                            <span className={`text-[10px] ${dark ? 'text-white/40 hover:text-white' : 'text-[var(--text-secondary)] hover:text-[#111111]'} cursor-pointer`} onClick={() => handlePinToggle(cmt.id)}>{cmt.is_pinned ? 'Unpin' : 'Pin'}</span>
                           )}
                         </div>
                       </div>
@@ -153,17 +150,17 @@ export const CommentModal = ({ isOpen, onClose, postId, postCreatorId }) => {
             </div>
 
             {/* Input Box */}
-            <div className="w-full flex flex-col bg-[var(--bg-secondary)] border-t border-[var(--border)] shrink-0 pb-[env(safe-area-inset-bottom)]">
+            <div className={`w-full flex flex-col ${dark ? 'bg-[#252525] border-t border-[#252525]' : 'bg-[var(--bg-secondary)] border-t border-[var(--border)]'} shrink-0 pb-[env(safe-area-inset-bottom)]`}>
               {replyTo && (
-                <div className="px-4 py-2 bg-[var(--bg-primary)] flex justify-between items-center border-b border-[var(--border)]">
-                  <span className="text-xs text-[var(--text-secondary)]">Replying to @{replyTo.user}</span>
-                  <button onClick={() => setReplyTo(null)} className="text-xs text-[var(--text-primary)]">Cancel</button>
+                <div className={`px-4 py-2 ${dark ? 'bg-[#1a1a1a] border-b border-[#252525]' : 'bg-[var(--bg-primary)] border-b border-[var(--border)]'} flex justify-between items-center`}>
+                  <span className={`text-xs ${dark ? 'text-white/60' : 'text-[var(--text-secondary)]'}`}>Replying to @{replyTo.user}</span>
+                  <button onClick={() => setReplyTo(null)} className={`text-xs ${dark ? 'text-white' : 'text-[var(--text-primary)]'}`}>Cancel</button>
                 </div>
               )}
               <div className="p-3 flex items-center gap-2">
                 <input 
                   ref={inputRef} type="text" placeholder="Add a comment..." value={cmtText} onChange={(e) => setCmtText(e.target.value)} onKeyDown={handleKeyDown} disabled={isSending}
-                  className="flex-1 bg-white/5 border border-[var(--border)] rounded-full px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--primary)]"
+                  className={`flex-1 ${dark ? 'bg-[#252525] border-[#252525] text-white placeholder-white/40' : 'bg-[#F7F7F9] border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)]'} border rounded-full px-4 py-2.5 text-sm focus:outline-none focus:border-[var(--primary)]`}
                 />
                 <button onClick={handleSend} disabled={!cmtText.trim() || isSending} className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center text-[var(--text-primary)] disabled:opacity-50 transition-all hover:bg-[var(--primary-light)] shrink-0">
                   <SendIcon />

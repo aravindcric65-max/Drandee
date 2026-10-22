@@ -98,18 +98,21 @@ const VideoUploadStudio = ({ initialStep = 'gallery', onClose }) => {
     setCurrentStep('publish');
   };
 
-  const handleConfirmPublish = async () => {
+  const handleConfirmPublish = async (finalSettings) => {
     try {
-      const token = localStorage.getItem('token');
       const file = mediaItems[0]?.file;
       
       let postType = 'video';
-      if (file.type && file.type.startsWith('image/')) {
+      if (file && file.type && file.type.startsWith('image/')) {
         postType = 'photo';
       }
       
+      // Merge finalSettings (from PrivacyPanel) with existing settings.
+      // This bypasses the async setState flush so caption is never empty.
+      const uploadSettings = finalSettings ? { ...settings, ...finalSettings } : settings;
+      
       // Start background upload via context (will show toast)
-      startUpload(file, settings, token, postType);
+      startUpload(file, uploadSettings, postType);
       
       clearDraft();
       handleClose(); // Instantly close the studio and return to feed

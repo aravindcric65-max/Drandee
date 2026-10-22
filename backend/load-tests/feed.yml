@@ -1,0 +1,118 @@
+# ============================================================
+# load-tests/feed.yml
+# Phase 6 — Step 3: Load Test — GET /api/feed
+#
+# SAFE RAMP-UP ONLY. Three independently runnable environments:
+#   smoke  → quick connectivity check (1 VU, 30s)
+#   load   → sustained realistic traffic (30 VU, 2m)
+#   stress → upper-bound stress (100 VU, 3m) — STAGING ONLY
+#
+# All secrets are read from environment variables.
+# NEVER hard-code tokens. NEVER point at production for stress.
+# Ranking, A/B, and security logic are NOT modified here.
+# ============================================================
+
+config:
+  # Default target: localhost. Override via CLI flag:
+  #   artillery run load-tests/feed.yml -e smoke --target http://your-staging-server
+  # Or set LOAD_TEST_BASE_URL and pass:  --target $LOAD_TEST_BASE_URL
+  target: "http://localhost:5000"
+
+  plugins:
+    expect: {}
+
+  # Note: Authorization header is set per-scenario using $processEnvironment
+  # so it is only injected when LOAD_TEST_AUTH_TOKEN is set in the shell.
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+
+  # Prometheus / CSV reporting friendly
+  ensure:
+    # Fail the run if p99 latency exceeds 2000ms (generous ceiling for CI)
+    p99: 2000
+    # Fail if error rate exceeds 5%
+    maxErrorRate: 5
+
+  # ── Environments ─────────────────────────────────────────
+  environments:
+
+    smoke:
+      phases:
+        - name: "smoke-ramp"
+          duration: 30
+          arrivalRate: 1
+          rampTo: 2
+
+    load:
+      phases:
+        - name: "load-warmup"
+          duration: 30
+          arrivalRate: 2
+          rampTo: 10
+        - name: "load-sustained"
+          duration: 90
+          arrivalRate: 10
+          rampTo: 30
+        - name: "load-cooldown"
+          duration: 30
+          arrivalRate: 30
+          rampTo: 5
+
+    stress:
+      # ⚠️ STAGING ONLY — never run against production
+      phases:
+        - name: "stress-ramp"
+          duration: 60
+          arrivalRate: 5
+          rampTo: 50
+        - name: "stress-peak"
+          duration: 120
+          arrivalRate: 50
+          rampTo: 100
+        - name: "stress-recovery"
+          duration: 60
+          arrivalRate: 100
+          rampTo: 5
+
+# ── Scenarios ────────────────────────────────────────────────
+scenarios:
+  - name: "Feed — initial page"
+    weight: 50
+    flow:
+      - get:
+          url: "/api/feed?limit=20&offset=0"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.LOAD_TEST_AUTH_TOKEN }}"
+          expect:
+            - statusCode:
+                - 200
+                - 401
+            - hasProperty: "success"
+
+  - name: "Feed — paginated (offset 20)"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/feed?limit=20&offset=20"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.LOAD_TEST_AUTH_TOKEN }}"
+          expect:
+            - statusCode:
+                - 200
+                - 401
+            - hasProperty: "success"
+
+  - name: "Feed — small page (mobile)"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/feed?limit=10&offset=0"
+          headers:
+            Authorization: "Bearer {{ $processEnvironment.LOAD_TEST_AUTH_TOKEN }}"
+          expect:
+            - statusCode:
+                - 200
+                - 401
+            - hasProperty: "success"

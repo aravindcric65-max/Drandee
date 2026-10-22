@@ -1,4 +1,5 @@
 import DefaultAvatar from "../DefaultAvatar";
+import { calculateRank, formatRespects, getRank } from "../../utils/badgeSystem";
 
 /* ── Frame gradient map ── */
 const FRAME_GRADIENTS = {
@@ -8,21 +9,7 @@ const FRAME_GRADIENTS = {
   crimson:  "linear-gradient(135deg, #FF4B2B, #FF416C)",
 };
 
-const getRank = (r) => {
-  if (r >= 1000000) return { label: "Legend",     color: "#FFD700", glow: "rgba(255,215,0,0.4)" };
-  if (r >= 500000)  return { label: "Icon",        color: "#E040FB", glow: "rgba(224,64,251,0.4)" };
-  if (r >= 200000)  return { label: "Influencer",  color: "#FF6B6B", glow: "rgba(255,107,107,0.4)" };
-  if (r >= 50000)   return { label: "Creator",     color: "#FF8E53", glow: "rgba(255,142,83,0.4)" };
-  if (r >= 10000)   return { label: "Rising",      color: "#7F77DD", glow: "rgba(127,119,221,0.4)" };
-  return                   { label: "Explorer",   color: "rgba(255,255,255,0.45)", glow: "rgba(255,255,255,0.1)" };
-};
-
-const fmt = (n) => {
-  if (!n && n !== 0) return "0";
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
-  if (n >= 1000)    return (n / 1000).toFixed(1) + "k";
-  return String(n);
-};
+/* ── Use canonical badge system ── */
 
 /* ─── ProfileHeader ─────────────────────────────────────── */
 const ProfileHeader = ({
@@ -42,7 +29,8 @@ const ProfileHeader = ({
   onFollow,
   onUnfollow,
 }) => {
-  const rank = getRank(totalRespects);
+  const rank = calculateRank(totalRespects);
+  const formattedRespects = formatRespects(totalRespects);
 
   return (
     <div style={S.hero}>
@@ -93,15 +81,15 @@ const ProfileHeader = ({
       )}
 
       {/* ── Rank tier ── */}
-      <div style={{ ...S.rankBadge, borderColor: rank.color, boxShadow: `0 0 14px ${rank.glow}` }}>
+      <div style={{ ...S.rankBadge, borderColor: rank.color, boxShadow: `0 0 14px rgba(${rank.color.slice(1)}, 0.4)` }}>
         <StarSmIcon color={rank.color} />
-        <span style={{ ...S.rankTxt, color: rank.color }}>{rank.label} Tier</span>
+        <span style={{ ...S.rankTxt, color: rank.color }}>{rank.title} Tier</span>
       </div>
 
       {/* ── Stats bar ── */}
       <div style={S.statsRow}>
         <div style={S.stat}>
-          <span style={S.statNum}>{fmt(postsCount)}</span>
+          <span style={S.statNum}>{formatRespects(postsCount)}</span>
           <span style={S.statLbl}>Journeys</span>
         </div>
         <div
@@ -111,7 +99,7 @@ const ProfileHeader = ({
           onClick={onFollowersOpen}
           onKeyDown={(e) => e.key === "Enter" && onFollowersOpen()}
         >
-          <span style={S.statNum}>{fmt(user?.followersCount ?? (user?.followers?.length ?? 0))}</span>
+          <span style={S.statNum}>{formatRespects(user?.followersCount ?? (user?.followers?.length ?? 0))}</span>
           <span style={S.statLbl}>Followers</span>
         </div>
         <div
@@ -211,6 +199,13 @@ const S = {
   actions: { display: "flex", gap: 8, width: "100%" },
   btnPrimary: { flex: 1, height: 44, borderRadius: 12, background: "#7F77DD", border: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: "13px", fontWeight: "700", color: "#fff", cursor: "pointer", transition: "opacity 0.15s" },
   btnSec: { flex: 1, height: 44, borderRadius: 12, background: "#151515", border: "0.5px solid #252525", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: "13px", fontWeight: "600", color: "#fff", cursor: "pointer" },
+};
+
+const fmt = (n) => {
+  if (!n) return "0";
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + "k";
+  return String(n);
 };
 
 export { getRank, fmt };

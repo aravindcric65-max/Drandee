@@ -30,7 +30,7 @@ export const RecommendedCreators = ({ mode = 'global' }) => {
 
   return (
     <div 
-      className="w-full bg-black flex flex-col justify-center px-4 sm:px-6 py-8 sm:py-10 relative overflow-hidden my-3 sm:my-4 border-y border-white/5"
+      className="w-full bg-[#FFFFFF] flex flex-col justify-center px-4 sm:px-6 py-8 sm:py-10 relative overflow-hidden my-3 sm:my-4 border-y border-[#E8E8EC]"
       role="region"
       aria-label="Recommended creators"
     >
@@ -63,7 +63,7 @@ export const RecommendedCreators = ({ mode = 'global' }) => {
             return (
               <div 
                 key={i} 
-                className="min-w-[150px] sm:min-w-[160px] max-w-[150px] sm:max-w-[160px] flex flex-col items-center p-3.5 sm:p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] snap-start focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/30"
+                className="min-w-[150px] sm:min-w-[160px] max-w-[150px] sm:max-w-[160px] flex flex-col items-center p-3.5 sm:p-4 rounded-2xl bg-[#F7F7F9] border border-[#E8E8EC] snap-start focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/30"
                 role="listitem"
                 tabIndex={0}
               >
@@ -75,17 +75,17 @@ export const RecommendedCreators = ({ mode = 'global' }) => {
                 </div>
                 
                 {/* Name */}
-                <h3 className="text-white font-bold text-[13px] sm:text-[14px] text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full mb-0.5">
+                <h3 className="text-[#111111] font-bold text-[13px] sm:text-[14px] text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full mb-0.5">
                   {creator.name}
                 </h3>
                 
                 {/* Username */}
-                <span className="text-white/40 text-[11px] sm:text-[12px] mb-3">
+                <span className="text-[#8A8A8F] text-[11px] sm:text-[12px] mb-3">
                   {creator.username}
                 </span>
                 
                 {/* Reason */}
-                <p className="text-white/50 text-[10px] sm:text-[11px] font-medium text-center mb-4 h-8 sm:h-10 flex items-center justify-center leading-tight line-clamp-2">
+                <p className="text-[#666666] text-[10px] sm:text-[11px] font-medium text-center mb-4 h-8 sm:h-10 flex items-center justify-center leading-tight line-clamp-2">
                   {creator.reason}
                 </p>
                 
@@ -95,7 +95,7 @@ export const RecommendedCreators = ({ mode = 'global' }) => {
                   onKeyDown={(e) => handleKeyDown(e, creator.name)}
                   className={`flex items-center gap-1.5 px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-[12px] font-bold transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/50 w-full justify-center min-h-[36px] ${
                     creatorFollowing 
-                      ? 'bg-white/10 text-white hover:bg-white/15' 
+                      ? 'bg-[#E8E8EC] text-[#666666] hover:bg-[#E8E8EC]/80' 
                       : 'bg-[#7F77DD] text-white hover:bg-[#7F77DD]/90'
                   }`}
                   aria-pressed={creatorFollowing}

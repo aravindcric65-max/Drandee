@@ -1,4 +1,4 @@
-import axios from "axios";
+// API helpers — auth is handled by apiInterceptor.js patching window.fetch
 
 const normalizeBaseUrl = (value) => {
   const raw = String(value || "").trim();
@@ -12,15 +12,14 @@ export const API_URL = normalizeBaseUrl(
   process.env.REACT_APP_API_URL || (process.env.NODE_ENV === "production" ? "" : "http://localhost:5000")
 );
 
+// Legacy helper — kept for compatibility with existing callers that pass tokens explicitly
 export const auth = (token) => {
   const cleanToken = String(token || "").trim();
   if (!cleanToken) {
     return {};
   }
   return {
-    headers: {
-      Authorization: `Bearer ${cleanToken}`,
-    },
+    headers: { Authorization: `Bearer ${cleanToken}` },
   };
 };
 
@@ -33,28 +32,69 @@ const getErrorMessage = (error, fallback) => {
   );
 };
 
-const getResponseData = (response) => {
-  return response?.data ?? {};
+// Helper to build URL with query params
+const buildUrl = (path, config) => {
+  let url = `${API_URL}${path}`;
+  if (config?.params) {
+    const searchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(config.params)) {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
+      }
+    }
+    const qs = searchParams.toString();
+    if (qs) {
+      url += `?${qs}`;
+    }
+  }
+  return url;
+};
+
+// Core fetch wrapper
+const doFetch = async (path, options, config = {}) => {
+  const url = buildUrl(path, config);
+  const headers = {
+    "Content-Type": "application/json",
+    ...(config.headers || {}),
+  };
+
+  const fetchOptions = {
+    ...options,
+    headers,
+  };
+
+  const response = await window.fetch(url, fetchOptions);
+  
+  let data = {};
+  try {
+    data = await response.json();
+  } catch (err) {
+    // Some endpoints might return empty body or plain text
+  }
+
+  if (!response.ok) {
+    const error = new Error(data.error || data.message || `HTTP error ${response.status}`);
+    error.response = { status: response.status, data };
+    throw error;
+  }
+
+  return data;
 };
 
 export const apiGet = async (path, config = {}) => {
-  const response = await axios.get(`${API_URL}${path}`, config);
-  return getResponseData(response);
+  return doFetch(path, { method: "GET" }, config);
 };
 
 export const apiPost = async (path, body = {}, config = {}) => {
-  const response = await axios.post(`${API_URL}${path}`, body, config);
-  return getResponseData(response);
+  return doFetch(path, { method: "POST", body: JSON.stringify(body) }, config);
 };
 
 const apiPut = async (path, body = {}, config = {}) => {
-  const response = await axios.put(`${API_URL}${path}`, body, config);
-  return getResponseData(response);
+  return doFetch(path, { method: "PUT", body: JSON.stringify(body) }, config);
 };
 
 const apiDelete = async (path, config = {}) => {
-  const response = await axios.delete(`${API_URL}${path}`, config);
-  return getResponseData(response);
+  return doFetch(path, { method: "DELETE" }, config);
 };
 
 /* ------------------------------------------------------------------

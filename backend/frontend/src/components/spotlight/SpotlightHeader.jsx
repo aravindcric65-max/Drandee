@@ -1,4 +1,6 @@
 import React from "react";
+import DrandeeLogo from "../brand/DrandeeLogo";
+import DrandeeWordmark from "../brand/DrandeeWordmark";
 
 export default function SpotlightHeader() {
   return (
@@ -12,8 +14,8 @@ export default function SpotlightHeader() {
       
       <div style={styles.content}>
         <div style={styles.logoGroup}>
-          <div style={styles.logoMark} aria-hidden="true">D</div>
-          <span style={styles.logoText}>Drandee</span>
+          <DrandeeLogo className="w-8 h-8" />
+          <DrandeeWordmark className="text-xl" showGradient={false} />
         </div>
         
         <h1 style={styles.title}>
@@ -41,25 +43,17 @@ const styles = {
     maxWidth: "1200px",
     margin: "0 auto"
   },
-  logoGroup: { display: "flex", alignItems: "center", gap: "10px" },
-  logoMark: {
-    width: "32px", height: "32px", borderRadius: "8px",
-    background: "linear-gradient(135deg, var(--primary, #7F77DD) 0%, var(--primary-dark, #6A61C9) 100%)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: "16px", fontWeight: "900", color: "#fff",
-    boxShadow: "0 0 16px rgba(127,119,221,0.4)",
-  },
-  logoText: { fontSize: "18px", fontWeight: "800", color: "#fff", letterSpacing: "-0.02em" },
+  logoGroup: { display: "flex", alignItems: "center", gap: "12px" },
   title: {
     fontSize: "20px",
     fontWeight: "800",
-    color: "#fff",
+    color: "#111111",
     letterSpacing: "0.15em",
     margin: 0,
     textTransform: "uppercase"
   },
   accent: {
-    color: "var(--primary-light, #9F99E8)"
+    color: "var(--primary, #7F77DD)"
   },
   orb1: {
     position: "fixed", top: "-20%", left: "50%", transform: "translateX(-50%)",

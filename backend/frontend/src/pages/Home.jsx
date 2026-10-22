@@ -5,12 +5,13 @@ import { MoreMenu } from '../components/home/MoreMenu';
 import CommentModal from '../components/home/CommentModal';
 import { ReportModal } from '../components/home/ReportModal';
 import { ViewersModal } from '../components/home/ViewersModal';
+import SaveModal from '../components/home/SaveModal';
+import { ShareModal } from '../components/home/ShareModal';
 import { UserContext } from '../context/UserContext';
 import { Search, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import AudioPage from '../components/reels/AudioPage';
-import TagPage from '../components/reels/TagPage';
 import { AnimatePresence, motion } from 'framer-motion';
 import DrandeeLogo from '../components/brand/DrandeeLogo';
 import DrandeeWordmark from '../components/brand/DrandeeWordmark';
@@ -22,15 +23,17 @@ const Home = () => {
   const navigate = useNavigate();
   const [feedMode, setFeedMode] = useState('for_you');
   const [activeMorePostId, setActiveMorePostId] = useState(null);
+  const [activeMoreCreatorId, setActiveMoreCreatorId] = useState(null);
   const [activeCommentPostId, setActiveCommentPostId] = useState(null);
   const [activeReportPostId, setActiveReportPostId] = useState(null);
   const [activeViewsPostId, setActiveViewsPostId] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [hiddenPosts, setHiddenPosts] = useState([]);
+  const [activeSavePostId, setActiveSavePostId] = useState(null);
+  const [activeSharePostId, setActiveSharePostId] = useState(null);
+    const [hiddenPosts, setHiddenPosts] = useState([]);
   
   // Overlays state
   const [activeAudioPost, setActiveAudioPost] = useState(null);
-  const [activeTag, setActiveTag] = useState(null);
+
 
   // Track which feeds have been rendered at least once to preserve state but avoid initial 3x loading
   const [renderedFeeds, setRenderedFeeds] = useState(new Set(['for_you']));
@@ -43,41 +46,19 @@ const Home = () => {
     });
   }, [feedMode]);
   
-  const { token, giveRespect, savePost } = useContext(UserContext) || {};
+  const { giveRespect, unreadCount, muteCreator, user } = useContext(UserContext) || {};
   
   const handleNotInterested = async (postId) => {
     setHiddenPosts((prev) => (prev.includes(postId) ? prev : [...prev, postId]));
-    const authToken = token || localStorage.getItem('token');
     try {
       await fetch(`/api/engagement/not-interested/${postId}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
+        method: 'POST'});
     } catch (err) {
       console.log("Failed to mark not interested", err);
     }
   };
   
-  const handleShareClick = async (postId) => {
-    const deepLink = `https://drandee.app/post/${postId}`;
-    const shareData = { title: "Drandee", text: "Check out this post on Drandee!", url: deepLink };
-
-    if (navigator.canShare && navigator.canShare(shareData)) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        if (err.name !== 'AbortError') console.log("Share failed", err);
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(deepLink);
-        setToast("Link copied to clipboard");
-        setTimeout(() => setToast(null), 2000);
-      } catch (err) {
-        console.error("Clipboard failed", err);
-      }
-    }
-  };
+  
   
   return (
     <>
@@ -98,12 +79,24 @@ const Home = () => {
                 <Search size={22} strokeWidth={2} />
               </button>
               <button 
-                onClick={() => navigate('/notifications')}
                 className="relative grid h-10 w-10 place-items-center rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-0 text-[var(--text-primary)]"
+                onClick={() => navigate('/notifications')}
                 aria-label="Open notifications"
               >
                 <Bell size={22} strokeWidth={2} />
-                <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full border border-[#09090e] bg-[#7F77DD]" aria-hidden="true" />
+                <AnimatePresence>
+                  {unreadCount > 0 && (
+                    <motion.span 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: [0, 1.2, 1], transition: { duration: 0.5, ease: 'easeOut' } }}
+                      exit={{ scale: 0 }}
+                      key={unreadCount}
+                      className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border border-[#09090e] bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm"
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </button>
               </div>
             </div>
@@ -126,17 +119,20 @@ const Home = () => {
                   <Feed 
                     mode={mode} 
                     isActive={feedMode === mode}
-                    onMore={(postId) => setActiveMorePostId(postId)}
+                    onMore={(postId, creatorId) => { setActiveMorePostId(postId); setActiveMoreCreatorId(creatorId ?? null); }}
                     onComment={(postId) => setActiveCommentPostId(postId)}
-                    onShare={handleShareClick}
-                    onSave={savePost}
+                    onShare={(postId) => setActiveSharePostId(postId)}
+                    onSave={(postId) => setActiveSavePostId(postId)}
                     onRespect={giveRespect}
                     hiddenPosts={hiddenPosts}
-                    token={token}
                     interactionProps={{
                       onAudioClick: (post) => setActiveAudioPost(post),
-                      onTagClick: (tag) => setActiveTag(tag),
-                      onViewsClick: (postId) => setActiveViewsPostId(postId)
+                      onTagClick: (tag) => navigate(`/tag/${tag}`),
+                      onViewsClick: (postId, creatorId) => {
+                        if (String(creatorId) === String(user?.id)) {
+                          setActiveViewsPostId(postId);
+                        }
+                      }
                     }}
                   />
                 </div>
@@ -149,9 +145,11 @@ const Home = () => {
       {/* Global Modals/Overlays */}
       <MoreMenu 
         isOpen={!!activeMorePostId} 
-        onClose={() => setActiveMorePostId(null)} 
-        postId={activeMorePostId} 
+        onClose={() => { setActiveMorePostId(null); setActiveMoreCreatorId(null); }} 
+        postId={activeMorePostId}
+        creatorId={activeMoreCreatorId}
         onNotInterested={handleNotInterested}
+        onMute={muteCreator}
         onReport={(postId) => {
           setActiveReportPostId(postId);
         }}
@@ -172,8 +170,19 @@ const Home = () => {
       <ViewersModal
         isOpen={!!activeViewsPostId}
         onClose={() => setActiveViewsPostId(null)}
-        postId={activeViewsPostId}
-      />
+        postId={activeViewsPostId} />
+
+        <SaveModal
+          isOpen={!!activeSavePostId}
+          onClose={() => setActiveSavePostId(null)}
+          postId={activeSavePostId}
+        />
+
+        <ShareModal
+          isOpen={!!activeSharePostId}
+          onClose={() => setActiveSharePostId(null)}
+          postId={activeSharePostId}
+        />
 
       <AnimatePresence>
         {activeAudioPost && (
@@ -184,31 +193,11 @@ const Home = () => {
             onClose={() => setActiveAudioPost(null)} 
           />
         )}
-        {activeTag && (
-          <TagPage 
-            tagName={activeTag} 
-            onClose={() => setActiveTag(null)} 
-          />
-        )}
+
+
       </AnimatePresence>
 
-      {/* Global Share Toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed bottom-[100px] left-1/2 -translate-x-1/2 z-[200] bg-black/90 backdrop-blur-md border border-white/10 px-5 py-3 rounded-full text-white text-sm font-medium flex items-center gap-2 shadow-2xl"
-          >
-            <div className="w-5 h-5 rounded-full bg-[#7F77DD]/20 flex items-center justify-center text-[#7F77DD]">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            </div>
-            {toast}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      
     </>
   );
 };

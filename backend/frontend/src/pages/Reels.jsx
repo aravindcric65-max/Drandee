@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { UserContext } from "../context/UserContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSwipeable } from "react-swipeable";
 import "./Reels.css";
 
@@ -12,10 +12,11 @@ import { BottomSection } from "../components/reels/BottomSection";
 import { RightActionBar } from "../components/reels/RightActionBar";
 import { AudioPage } from "../components/reels/AudioPage";
 import { PrivacyMenu } from "../components/reels/PrivacyMenu";
-import { TagPage } from "../components/reels/TagPage";
 import { VelocityIndicator } from "../components/reels/VelocityIndicator";
 import { ReportModal } from "../components/home/ReportModal";
 import { CommentModal } from "../components/home/CommentModal";
+import { ViewersModal } from "../components/home/ViewersModal";
+import { determineContentType } from "../utils/contentType";
 
 // Icons (kept for sheets)
 import {
@@ -25,11 +26,8 @@ import {
 import Navbar from "../components/Navbar";
 
 /* ── Constants ── */
-const API_BASE_URL = "http://localhost:5000/api";
-const getAuthToken = () =>
-  localStorage.getItem("token") ||
-  localStorage.getItem("authToken") ||
-  localStorage.getItem("jwt");
+const API_BASE_URL = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "") + "/api";
+
 
 /* Report options are now owned by ReportModal.
 const REPORT_REASONS = [
@@ -43,6 +41,8 @@ const REPORT_REASONS = [
 
 /* ── Persist scroll position across mounts ── */
 let _savedCur = 0;
+let _savedApiFeed = [];
+let _savedOffset = 0;
 let _savedTab = "all";
 
 /* ================================================================
@@ -62,23 +62,28 @@ const Reels = () => {
     muteCreator,
     reportPost,
     userFeedback = {},
+    // eslint-disable-next-line no-unused-vars
     postComments = {},
   } = useContext(UserContext) || {};
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const targetPostId = searchParams.get('postId');
 
   /* ── Feed ── */
   const [activeTab, setActiveTab] = useState(_savedTab);
+  const [selectedCollection, setSelectedCollection] = useState("all");
+  
   const [feed, setFeed] = useState([]);
   const [cur, setCur] = useState(_savedCur);
   const [paused, setPaused] = useState(false);
-  const [apiFeed, setApiFeed] = useState([]);
+  const [apiFeed, setApiFeed] = useState(_savedApiFeed);
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedError, setFeedError] = useState(null);
   const [scrollCount, setScrollCount] = useState(0);
 
   /* ── Infinite Scroll Pagination ── */
-  const [offset, setOffset] = useState(0);
+  const [offset, setOffset] = useState(_savedOffset);
   const [hasMore, setHasMore] = useState(true);
 
   /* ── Optimistic trackers ── */
@@ -88,6 +93,8 @@ const Reels = () => {
   const [savedCollNames, setSavedCollNames] = useState({});
   /* Live server-synced respect counts: { postId: number } */
   const [liveRespectCounts, setLiveRespectCounts] = useState({});
+  /* Live server-synced comment counts: { postId: number } */
+  const [liveCommentCounts, setLiveCommentCounts] = useState({});
 
   /* ── Caption ── */
   const [expandedCaption, setExpandedCaption] = useState({});
@@ -111,7 +118,6 @@ const Reels = () => {
   const [openReport, setOpenReport] = useState(null);
   const [feedbackMsg, setFeedbackMsg] = useState({});
   const [openAvOptions, setAvOptions] = useState(null);
-  const [openTag, setOpenTag] = useState(null);
 
   /* ── Mute / Speed Control / Pause Icon ── */
   const [speed, setSpeed] = useState(1.0);
@@ -137,7 +143,7 @@ const Reels = () => {
   const isFetchingFeed = useRef(false);
   const lastTapRef = useRef(0);
 
-  const anySheetOpen = openCmt || openShare || openSave || openPrivacy || openViews || openAvOptions || openTag || openAudio || openReport;
+  const anySheetOpen = openCmt || openShare || openSave || openPrivacy || openViews || openAvOptions || openAudio || openReport;
 
   /* ================================================================
      1. API FEED (Infinite Scroll)
@@ -150,12 +156,10 @@ const Reels = () => {
     setFeedError(null);
     
     try {
-      const token = getAuthToken() || "dummy-token"; // Interceptor will overwrite this
+      
       
       const currentOffset = isRefresh ? 0 : offset;
-      const res = await fetch(`${API_BASE_URL}/feed?limit=20&offset=${currentOffset}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`${API_BASE_URL}/feed?limit=20&offset=${currentOffset}`);
 
       if (res.status === 401) {
         setFeedError("Please login to view feed");
@@ -198,16 +202,33 @@ const Reels = () => {
 
   /* ── Filter by tab ── */
   const filteredFeed = useMemo(() => {
-    if (activeTab === "saved")
-      return apiFeed.filter((p) => user?.savedPosts?.includes(p.id) || savedTracker[p.id]);
+    const videoPosts = apiFeed.filter(p => (p?.content_type === 'video' || determineContentType(p) === 'video'));
+    if (activeTab === "saved") {
+      let saved = videoPosts.filter((p) => user?.savedPosts?.includes(p.id) || savedTracker[p.id]);
+      if (selectedCollection !== "all") {
+        saved = saved.filter(p => user?.savedCollections?.[p.id] === selectedCollection);
+      }
+      return saved;
+    }
     if (activeTab === "friends")
-      return apiFeed.filter((p) => user?.following?.includes(p.creatorId));
-    return apiFeed;
-  }, [apiFeed, activeTab, user?.savedPosts, user?.following, savedTracker]);
+      return videoPosts.filter(p => user?.following?.includes(p.creatorId));
+    return videoPosts;
+  }, [apiFeed, activeTab, user?.savedPosts, user?.following, savedTracker, selectedCollection, user?.savedCollections]);
 
   useEffect(() => {
+    const prevId = feed[_savedCur]?.id;
+    const nextIdx = prevId ? filteredFeed.findIndex(p => p.id === prevId) : -1;
     setFeed(filteredFeed);
-    setCur(0);
+    if (targetPostId) {
+      // Try to find the post index and jump directly to it
+      const idx = filteredFeed.findIndex(p => String(p.id) === String(targetPostId));
+      setCur(idx >= 0 ? idx : 0);
+    } else if (nextIdx >= 0) {
+      // Keep viewer on the same post after feed update
+      setCur(nextIdx);
+    } else {
+      setCur(0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredFeed]);
 
@@ -218,11 +239,65 @@ const Reels = () => {
 
   /* ── Persist tab / cursor ── */
   useEffect(() => { _savedCur = cur; }, [cur]);
+  useEffect(() => { _savedApiFeed = apiFeed; }, [apiFeed]);
+  useEffect(() => { _savedOffset = offset; }, [offset]);
   useEffect(() => { _savedTab = activeTab; }, [activeTab]);
 
   /* ================================================================
      NAVIGATION
   ================================================================ */
+
+  const feedRef = useRef(feed);
+  useEffect(() => { feedRef.current = feed; }, [feed]);
+
+  useEffect(() => {
+    const handleEngagement = (e) => {
+      const { postId, engagement, action, delta } = e.detail || {};
+      if (!postId) return;
+
+      if (engagement) {
+        if (engagement.respectCount !== undefined) {
+          setLiveRespectCounts(prev => ({ ...prev, [postId]: engagement.respectCount }));
+        }
+        if (engagement.hasRespected !== undefined) {
+          setRespectedTracker(prev => ({ ...prev, [postId]: engagement.hasRespected }));
+        }
+        if (engagement.hasSaved !== undefined) {
+          setSavedTracker(prev => ({ ...prev, [postId]: engagement.hasSaved }));
+        }
+        if (engagement.shareCount !== undefined) {
+          setShareCounts(prev => ({ ...prev, [postId]: engagement.shareCount }));
+        }
+        if (engagement.commentCount !== undefined) {
+          setLiveCommentCounts(prev => ({ ...prev, [postId]: engagement.commentCount }));
+        }
+      } else if (action && typeof delta === 'number') {
+        const p = feedRef.current?.find(x => x.id === postId) || {};
+        if (action === 'respect') {
+          setLiveRespectCounts(prev => {
+            const current = prev[postId] !== undefined ? prev[postId] : (p.totalRespects || 0);
+            return { ...prev, [postId]: Math.max(0, current + delta) };
+          });
+          setRespectedTracker(prev => ({ ...prev, [postId]: delta > 0 }));
+        } else if (action === 'comment') {
+          setLiveCommentCounts(prev => {
+            const current = prev[postId] !== undefined ? prev[postId] : (p.comments || 0);
+            return { ...prev, [postId]: Math.max(0, current + delta) };
+          });
+        } else if (action === 'share') {
+          setShareCounts(prev => {
+            const current = prev[postId] !== undefined ? prev[postId] : (p.shares || 0);
+            return { ...prev, [postId]: Math.max(0, current + delta) };
+          });
+        } else if (action === 'save') {
+          setSavedTracker(prev => ({ ...prev, [postId]: delta > 0 }));
+        }
+      }
+    };
+    window.addEventListener('engagement_updated', handleEngagement);
+    return () => window.removeEventListener('engagement_updated', handleEngagement);
+  }, []);
+
   const closeAllSheets = useCallback(() => {
     setOpenCmt(null);
     setOpenViews(null);
@@ -230,7 +305,6 @@ const Reels = () => {
     setOpenSave(null);
     setOpenPrivacy(null);
     setAvOptions(null);
-    setOpenTag(null);
     setOpenAudio(null);
     setOpenReport(null);
   }, []);
@@ -268,7 +342,10 @@ const Reels = () => {
       setTimeout(() => setFloatingIcons((prev) => prev.filter((f) => f.id !== id)), 1000);
       if (feed[cur]) {
         const postId = feed[cur].id;
-        const isCurrently = respectedTracker[postId] !== undefined ? respectedTracker[postId] : (user?.respectedVideos?.includes(postId) ?? false);
+        const currentPost = feed[cur];
+        const isCurrently = respectedTracker[postId] !== undefined
+          ? respectedTracker[postId]
+          : (currentPost?.hasRespected || currentPost?.has_respected || user?.respectedVideos?.includes(postId) || false);
         if (!isCurrently) handleRespect(postId);
       }
       lastTapRef.current = 0;
@@ -288,43 +365,10 @@ const Reels = () => {
      2. RESPECT — Optimistic + server sync
   ================================================================ */
   const handleRespect = useCallback(async (postId) => {
-    const isCurrently = respectedTracker[postId] !== undefined
-      ? respectedTracker[postId]
-      : (user?.respectedVideos?.includes(postId) ?? false);
-
-    // Optimistic UI update
-    setRespectedTracker((prev) => ({ ...prev, [postId]: !isCurrently }));
-    if (!isCurrently) {
-      setLiveRespectCounts((prev) => ({ ...prev, [postId]: (prev[postId] !== undefined ? prev[postId] : (feed.find(p => p.id === postId)?.totalRespects || 0)) + 1 }));
-    } else {
-      setLiveRespectCounts((prev) => ({ ...prev, [postId]: Math.max(0, (prev[postId] !== undefined ? prev[postId] : (feed.find(p => p.id === postId)?.totalRespects || 0)) - 1) }));
+    if (giveRespect) {
+      giveRespect(postId);
     }
-    giveRespect && giveRespect(postId); // update local UserContext
-
-    // Server sync — no race conditions (uses DB transaction)
-    try {
-      const token = getAuthToken();
-      if (!token) return;
-      const res = await fetch(`${API_BASE_URL}/engagement/respect/${postId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) {
-          // Sync with authoritative server count
-          setLiveRespectCounts((prev) => ({ ...prev, [postId]: data.totalRespects }));
-          setRespectedTracker((prev) => ({ ...prev, [postId]: data.respected }));
-        }
-      } else {
-        console.log("Respect API failed, keeping optimistic state");
-      }
-    } catch (err) {
-      console.log("Respect API error (mocked):", err.message);
-      // We keep the optimistic update instead of reverting
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [giveRespect, respectedTracker, user?.respectedVideos, feed]);
+  }, [giveRespect]);
 
   /* ================================================================
      3. COMMENT
@@ -363,19 +407,26 @@ const Reels = () => {
   const handleShare = async (platform, postId) => {
     const deepLink = `https://drandee.app/reel/${postId}`;
     const shareText = "Check out this reel on Drandee!";
-    setShareCounts((prev) => ({ ...prev, [postId]: (prev[postId] || 0) + 1 }));
-    incrementShare && incrementShare(postId);
-    if (platform === "whatsapp") window.open(`https://wa.me/?text=${encodeURIComponent(shareText + " " + deepLink)}`, "_blank");
-    else if (platform === "telegram") window.open(`https://t.me/share/url?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(shareText)}`, "_blank");
-    else if (platform === "twitter") window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(shareText)}`, "_blank");
-    else if (platform === "more" || platform === "copy") {
+    // incrementShare is called only AFTER a confirmed share action, not on modal open
+    if (platform === "whatsapp") {
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareText + " " + deepLink)}`, "_blank");
+      incrementShare && incrementShare(postId);
+    } else if (platform === "telegram") {
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(shareText)}`, "_blank");
+      incrementShare && incrementShare(postId);
+    } else if (platform === "twitter") {
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(shareText)}`, "_blank");
+      incrementShare && incrementShare(postId);
+    } else if (platform === "more" || platform === "copy") {
       if (isSharing.current) return;
       try {
         if (navigator.share) {
           isSharing.current = true;
           await navigator.share({ title: "Drandee Reel", text: shareText, url: deepLink });
+          incrementShare && incrementShare(postId); // only on confirmed share
         } else {
           await navigator.clipboard.writeText(deepLink);
+          incrementShare && incrementShare(postId); // only on successful copy
           if (platform === "copy") {
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
@@ -385,6 +436,7 @@ const Reels = () => {
         }
       } catch (error) {
         console.log("Share cancelled or failed");
+        // incrementShare is NOT called — user cancelled
       } finally {
         isSharing.current = false;
       }
@@ -498,6 +550,8 @@ const Reels = () => {
         currentPost={feed[cur]}
         scrollCount={scrollCount}
         user={user}
+        selectedCollection={selectedCollection}
+        onCollectionChange={setSelectedCollection}
       />
 
       {/* Swipeable viewport */}
@@ -519,13 +573,17 @@ const Reels = () => {
                : activeTab === "saved" ? "No saved reels — tap bookmark to save"
                : "No reels yet — check back soon"}
             </p>
+            <button className="reels-retry-btn" onClick={() => loadFeed(true)}>Retry</button>
           </div>
         ) : (
           feed.map((p, i) => {
-            const respected = respectedTracker[p.id] !== undefined ? respectedTracker[p.id] : (user?.respectedVideos?.includes(p.id) ?? false);
-            const saved = savedTracker[p.id] !== undefined ? savedTracker[p.id] : (user?.savedPosts?.includes(p.id) ?? false);
+            const respected = respectedTracker[p.id] !== undefined
+              ? respectedTracker[p.id]
+              : (p.hasRespected || p.has_respected || user?.respectedVideos?.includes(p.id) || false);
+            const saved = savedTracker[p.id] !== undefined
+              ? savedTracker[p.id]
+              : (p.hasSaved || p.has_saved || user?.savedPosts?.includes(p.id) || false);
             const following = followTracker[p.creatorId] !== undefined ? followTracker[p.creatorId] : (user?.following?.includes(p.creatorId) ?? false);
-            const localCmts = postComments[p.id] || [];
             const colName = savedCollNames[p.id] || null;
             /* Use server-synced count first, then context, then feed data */
             const liveRespects = liveRespectCounts[p.id] !== undefined
@@ -604,7 +662,7 @@ const Reels = () => {
                     expandedCaption={expandedCaption[p.id] || false}
                     onToggleCaption={() => setExpandedCaption((prev) => ({ ...prev, [p.id]: !prev[p.id] }))}
                     onFollow={handleFollow}
-                    onTagClick={(tag) => setOpenTag(tag)}
+                    onTagClick={(tag) => navigate(`/tag/${tag}`)}
                     onAudioClick={() => setOpenAudio(p)}
                     onCreatorClick={(id) => navigate(`/profile/${id}`)}
                   />
@@ -615,8 +673,8 @@ const Reels = () => {
                     respected={respected}
                     saved={saved}
                     liveRespects={liveRespects}
-                    commentCount={localCmts.length + (p.comments || 0)}
-                    shareCount={(shareCounts[p.id] || 0) + (p.shares || 0)}
+                    commentCount={liveCommentCounts[p.id] !== undefined ? liveCommentCounts[p.id] : (p.comments || 0)}
+                    shareCount={shareCounts[p.id] !== undefined ? shareCounts[p.id] : (p.shares || 0)}
                     paused={paused}
                     onRespect={() => handleRespect(p.id)}
                     onComment={() => { setOpenCmt(p.id); setOpenShare(null); setOpenSave(null); }}
@@ -658,21 +716,6 @@ const Reels = () => {
         />
       )}
 
-      {/* ================================================================
-          TAG PAGE
-      ================================================================ */}
-      {openTag && (
-        <TagPage
-          tagName={openTag}
-          onClose={() => setOpenTag(null)}
-          onPlayReel={(reel) => {
-            const exists = feed.find(f => f.id === reel.id);
-            if (!exists) setApiFeed(prev => [reel, ...prev]);
-            setCur(0);
-            setOpenTag(null);
-          }}
-        />
-      )}
 
 
       {/* ================================================================
@@ -708,37 +751,19 @@ const Reels = () => {
       <ReportModal 
         isOpen={!!openReport} 
         onClose={() => setOpenReport(null)} 
-        postId={openReport} 
+        postId={openReport}
+        dark={true}
       />
 
       {/* ================================================================
           SHEET — VIEWS
       ================================================================ */}
-      {openViews && (
-        <div className="reels-overlay" onClick={() => setOpenViews(null)}>
-          <div className="reels-sheet-tall" onClick={(e) => e.stopPropagation()}>
-            <div className="reels-handle" />
-            <div className="reels-cmt-header">
-              <span className="reels-cmt-title">Views</span>
-              <span className="reels-cmt-badge">{feed.find((p) => p.id === openViews)?.watchCount || 0}</span>
-            </div>
-            <div className="reels-cmt-list">
-              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "10px 0 6px" }}>Viewers who watched this video</p>
-              {[1,2,3].map((n) => (
-                <div key={n} className="reels-cmt-item">
-                  <div className="reels-cmt-av" style={{ background: `hsl(${n * 80},60%,50%)` }}>{n}</div>
-                  <div style={{ flex: 1 }}>
-                    <div className="reels-cmt-meta">
-                      <span className="reels-cmt-user">viewer_{n}</span>
-                      <span className="reels-cmt-time">just now</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      <ViewersModal 
+        isOpen={!!openViews} 
+        onClose={() => setOpenViews(null)} 
+        postId={openViews}
+        dark={true}
+      />
 
       {/* ================================================================
           SHEET — COMMENT
@@ -748,6 +773,7 @@ const Reels = () => {
         onClose={() => setOpenCmt(null)} 
         postId={openCmt}
         postCreatorId={feed.find(p => p.id === openCmt)?.creatorId}
+        dark={true}
       />
 
       {/* ================================================================

@@ -26,12 +26,9 @@ const Feed = () => {
       setLoadError("");
 
       try {
-        const token =
-          localStorage.getItem("token") ||
-          localStorage.getItem("accessToken") ||
-          "";
+        
 
-        const res = await getFeed(token);
+        const res = await getFeed();
         const apiPosts = Array.isArray(res?.posts) ? res.posts : [];
 
         const smartFeed = getSmartFeed(apiPosts, user || {}, { limit: 20 });

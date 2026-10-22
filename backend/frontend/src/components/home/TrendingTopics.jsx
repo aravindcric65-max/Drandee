@@ -1,7 +1,9 @@
 import React, { useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TrendingUp, MapPin, Sparkles } from 'lucide-react';
 
 export const TrendingTopics = ({ mode = 'global' }) => {
+  const navigate = useNavigate();
   const isLocal = useMemo(() => mode === 'local', [mode]);
 
   const topics = useMemo(() => [
@@ -9,9 +11,8 @@ export const TrendingTopics = ({ mode = 'global' }) => {
   ], []);
 
   const handleTopicClick = useCallback((topic) => {
-    // Navigate to topic page
-    window.location.href = `/explore?tag=${encodeURIComponent(topic)}`;
-  }, []);
+    navigate(`/explore?tag=${encodeURIComponent(topic)}`);
+  }, [navigate]);
 
   const handleKeyDown = useCallback((e, topic) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -22,7 +23,7 @@ export const TrendingTopics = ({ mode = 'global' }) => {
 
   return (
     <div 
-      className="w-full bg-black flex flex-col justify-center px-4 sm:px-6 py-6 sm:py-8 relative overflow-hidden my-2 sm:my-3 border-y border-white/[0.05]"
+      className="w-full bg-[#F7F7F9] flex flex-col justify-center px-4 sm:px-6 py-6 sm:py-8 relative overflow-hidden my-2 sm:my-3 border-y border-[#E8E8EC]"
       role="region"
       aria-label="Trending topics"
     >
@@ -52,7 +53,7 @@ export const TrendingTopics = ({ mode = 'global' }) => {
               key={i}
               onClick={() => handleTopicClick(topic)}
               onKeyDown={(e) => handleKeyDown(e, topic)}
-              className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/70 text-[12px] sm:text-[13px] font-medium hover:bg-white/10 hover:text-white hover:border-white/15 transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/30 min-h-[36px]"
+              className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white border border-[#E8E8EC] text-[#666666] text-[12px] sm:text-[13px] font-medium hover:bg-black/5 hover:text-[#111111] transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/30 min-h-[36px]"
               role="listitem"
               aria-label={`View trending topic: ${topic}`}
             >

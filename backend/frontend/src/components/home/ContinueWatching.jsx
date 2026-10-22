@@ -1,7 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PlayCircle, Play, X } from 'lucide-react';
 
 export const ContinueWatching = () => {
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState([
     { 
       id: 1, 
@@ -32,8 +34,8 @@ export const ContinueWatching = () => {
   const handleCardClick = useCallback((session) => {
     // Navigate to video with timestamp
     const timestamp = (session.progress / 100) * session.duration;
-    window.location.href = `/watch/${session.videoId}?t=${timestamp}`;
-  }, []);
+    navigate(`/watch/${session.videoId}?t=${timestamp}`);
+  }, [navigate]);
 
   const handleKeyDown = useCallback((e, session) => {
     if (e.key === 'Enter' || e.key === ' ') {

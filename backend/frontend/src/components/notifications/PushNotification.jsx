@@ -38,7 +38,7 @@ const PushNotification = () => {
   const handleTap = (notif) => {
     setNotifications(prev => prev.filter(n => n.id !== notif.id));
     if (notif.postId) {
-      navigate(`/reels`); // Or specific post route
+      navigate(`/reels?postId=${notif.postId}`);
     } else if (notif.actorId) {
       navigate(`/profile/${notif.actorId}`);
     } else {

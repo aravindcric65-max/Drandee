@@ -6,18 +6,18 @@ const UploadExample = () => {
   const [showStudio, setShowStudio] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#090A0F] p-8">
+    <div className="min-h-screen bg-[#FFFFFF] p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-4">
+        <h1 className="text-3xl font-bold text-[#111111] mb-4">
           Video Upload System - Complete Example
         </h1>
-        <p className="text-gray-400 mb-8">
+        <p className="text-[#666666] mb-8">
           This demonstrates the complete upload flow from start to finish.
         </p>
 
         {/* Example 1: Simple Button */}
-        <div className="bg-white/5 rounded-2xl p-6 mb-6 border border-white/5">
-          <h2 className="text-xl font-semibold text-white mb-4">
+        <div className="bg-[#F7F7F9] rounded-2xl p-6 mb-6 border border-[#E8E8EC]">
+          <h2 className="text-xl font-semibold text-[#111111] mb-4">
             Example 1: Simple Upload Button
           </h2>
           <Button
@@ -30,8 +30,8 @@ const UploadExample = () => {
         </div>
 
         {/* Example 2: With Callbacks */}
-        <div className="bg-white/5 rounded-2xl p-6 mb-6 border border-white/5">
-          <h2 className="text-xl font-semibold text-white mb-4">
+        <div className="bg-[#F7F7F9] rounded-2xl p-6 mb-6 border border-[#E8E8EC]">
+          <h2 className="text-xl font-semibold text-[#111111] mb-4">
             Example 2: With Success Callback
           </h2>
           <VideoUploadStudio
@@ -44,11 +44,11 @@ const UploadExample = () => {
         </div>
 
         {/* Code Example */}
-        <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
-          <h2 className="text-xl font-semibold text-white mb-4">
+        <div className="bg-[#F7F7F9] rounded-2xl p-6 border border-[#E8E8EC]">
+          <h2 className="text-xl font-semibold text-[#111111] mb-4">
             Example 3: Code Usage
           </h2>
-          <pre className="bg-black/50 rounded-xl p-4 text-sm text-gray-300 overflow-x-auto">
+          <pre className="bg-[#E8E8EC] rounded-xl p-4 text-sm text-[#666666] overflow-x-auto">
 {`// Import the studio
 import VideoUploadStudio from '../components/studio/VideoUploadStudio';
 

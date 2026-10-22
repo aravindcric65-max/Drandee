@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Type } from 'lucide-react';
 import PrivacyPanel from './PrivacyPanel';
+import { parseApiResponse } from '../../utils/apiHelper';
 
 const FONTS = [
   { name: 'System', value: 'system-ui, sans-serif' },
@@ -55,24 +56,20 @@ const TextPostStudio = ({ onClose }) => {
 
   const handleConfirmPublish = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
       // Send directly to post endpoint for text posts
       const response = await fetch('/api/upload/posts', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+          'Content-Type': 'application/json'},
         body: JSON.stringify({
           type: 'text',
           caption: text, // Use the typed text, not settings.caption which is empty
-          hashtags: settings.hashtags || [],
+          hashtags: [...new Set((text.match(/#([a-zA-Z0-9_]+)/g) || []).map(t => t.replace('#', '').toLowerCase()))],
           visibility: settings.privacy || 'public'
         })
       });
       
-      const result = await response.json();
+      const result = await parseApiResponse(response, "Text Post Publishing");
       
       if (result.success && result.data) {
         // Dispatch global event for live feed update
@@ -84,7 +81,7 @@ const TextPostStudio = ({ onClose }) => {
       onClose(); // Close the studio and return to feed
     } catch (err) {
       console.error('Upload Error:', err);
-      alert('Failed to publish text post: ' + err.message);
+      alert(err.message);
     }
   };
 
@@ -127,7 +124,10 @@ const TextPostStudio = ({ onClose }) => {
         style={{ background }}
         onClick={() => setShowFonts(false)}
       >
+        <label htmlFor="text-post-input" className="sr-only">Text Post Content</label>
         <textarea
+          id="text-post-input"
+          name="textPostContent"
           ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value)}

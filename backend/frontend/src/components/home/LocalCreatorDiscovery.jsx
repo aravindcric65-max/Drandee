@@ -50,11 +50,11 @@ export const LocalCreatorDiscovery = ({ creator: initialCreator, onClose }) => {
 
   return (
     <div 
-      className="w-full bg-black flex flex-col justify-center px-4 sm:px-6 py-8 sm:py-10 relative overflow-hidden my-3 sm:my-4 border-y border-white/[0.05]"
+      className="w-full bg-[#F7F7F9] flex flex-col justify-center px-4 sm:px-6 py-8 sm:py-10 relative overflow-hidden my-3 sm:my-4 border-y border-[#E8E8EC]"
       role="region"
       aria-label="Local creator discovery"
     >
-      <div className="w-full max-w-[400px] mx-auto z-10 flex flex-col items-center text-center bg-white/[0.02] border border-white/10 rounded-2xl sm:rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+      <div className="w-full max-w-[400px] mx-auto z-10 flex flex-col items-center text-center bg-[#FFFFFF] border border-[#E8E8EC] rounded-2xl sm:rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-sm">
         
         {/* Subtle decorative glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[1px] bg-gradient-to-r from-transparent via-[#7F77DD]/30 to-transparent" aria-hidden="true" />
@@ -74,23 +74,23 @@ export const LocalCreatorDiscovery = ({ creator: initialCreator, onClose }) => {
           size={64}
           src={displayCreator.avatarUrl}
           creatorName={creatorName}
-          className="border-2 border-white shadow-sm mb-3"
+          className="border-2 border-[#FFFFFF] shadow-sm mb-3"
         />
         
         {/* Name */}
-        <h3 className="text-white text-[18px] sm:text-[20px] font-bold tracking-tight mb-1">
+        <h3 className="text-[#111111] text-[18px] sm:text-[20px] font-bold tracking-tight mb-1">
           {creatorName}
         </h3>
-        <span className="text-white/40 text-[13px] sm:text-[14px] mb-5 sm:mb-6">
+        <span className="text-[#8A8A8F] text-[13px] sm:text-[14px] mb-5 sm:mb-6">
           @{creatorUsername}
         </span>
         
         {/* Topics */}
         <div className="flex flex-col items-center gap-1.5 mb-6 sm:mb-8">
-          <span className="text-white/40 text-[11px] sm:text-[12px] font-medium tracking-wide uppercase">
+          <span className="text-[#8A8A8F] text-[11px] sm:text-[12px] font-medium tracking-wide uppercase">
             Creates content about
           </span>
-          <span className="text-white/70 text-[13px] sm:text-[14px] font-medium">
+          <span className="text-[#666666] text-[13px] sm:text-[14px] font-medium">
             {creatorTopics}
           </span>
         </div>
@@ -102,7 +102,7 @@ export const LocalCreatorDiscovery = ({ creator: initialCreator, onClose }) => {
           disabled={isPending}
           className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-full text-[13px] sm:text-[14px] font-bold transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/50 flex items-center gap-2 min-h-[44px] ${
             isFollowing 
-              ? 'bg-white/10 text-white hover:bg-white/15' 
+              ? 'bg-[#E8E8EC] text-[#666666] hover:bg-[#E8E8EC]/80' 
               : 'bg-[#7F77DD] text-white hover:bg-[#7F77DD]/90 shadow-[0_0_20px_rgba(127,119,221,0.3)]'
           } ${isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
           aria-pressed={isFollowing}

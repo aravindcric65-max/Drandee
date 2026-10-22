@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { WAIcon, TGIcon, TWIcon, LinkIcon, CheckCircleIcon } from '../reels/ReelsIcons';
 
-export const ShareModal = ({ isOpen, onClose, postId }) => {
+export const ShareModal = ({ isOpen, onClose, postId, onShareComplete, dark = false }) => {
   const [copied, setCopied] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const modalRef = useRef(null);
@@ -59,6 +59,7 @@ export const ShareModal = ({ isOpen, onClose, postId }) => {
       } else if (platform === "copy") {
         try {
           await navigator.clipboard.writeText(deepLink);
+          onShareComplete?.();
           setCopied(true);
           setTimeout(() => {
             setCopied(false);
@@ -69,13 +70,14 @@ export const ShareModal = ({ isOpen, onClose, postId }) => {
           console.error("Failed to copy", err);
         }
       }
+      onShareComplete?.();
       onClose();
     } catch (error) {
       console.error("Share error:", error);
     } finally {
       setIsSharing(false);
     }
-  }, [deepLink, shareText, isSharing, onClose]);
+  }, [deepLink, shareText, isSharing, onClose, onShareComplete]);
 
   const handleKeyDown = useCallback((e, action) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -87,8 +89,8 @@ export const ShareModal = ({ isOpen, onClose, postId }) => {
   const platforms = useMemo(() => [
     { id: 'whatsapp', name: 'WhatsApp', icon: <WAIcon />, color: 'hover:bg-[#25D366]/10 text-[#25D366]' },
     { id: 'telegram', name: 'Telegram', icon: <TGIcon />, color: 'hover:bg-[#0088cc]/10 text-[#0088cc]' },
-    { id: 'twitter', name: 'X (Twitter)', icon: <TWIcon />, color: 'hover:bg-white/10 text-white' },
-    { id: 'copy', name: copied ? 'Copied!' : 'Copy Link', icon: copied ? <CheckCircleIcon /> : <LinkIcon />, color: 'hover:bg-[#7F77DD]/10 text-white' }
+    { id: 'twitter', name: 'X (Twitter)', icon: <TWIcon />, color: 'hover:bg-black/5 text-[#111111]' },
+    { id: 'copy', name: copied ? 'Copied!' : 'Copy Link', icon: copied ? <CheckCircleIcon /> : <LinkIcon />, color: 'hover:bg-[#7F77DD]/10 text-[#111111]' }
   ], [copied]);
 
   const modalVariants = {
@@ -137,11 +139,11 @@ export const ShareModal = ({ isOpen, onClose, postId }) => {
             animate="visible"
             exit="exit"
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-[340px] bg-[#121215] border-t sm:border border-white/10 rounded-t-[28px] sm:rounded-2xl pb-6 sm:pb-4 pt-3 sm:pt-4 overflow-hidden shadow-2xl"
+            className={`w-full sm:max-w-[340px] ${dark ? 'bg-[#1a1a1a]' : 'bg-[#FFFFFF]'} border-t sm:border ${dark ? 'border-[#252525]' : 'border-[#E8E8EC]'} rounded-t-[28px] sm:rounded-2xl pb-6 sm:pb-4 pt-3 sm:pt-4 overflow-hidden shadow-2xl`}
           >
             {/* Mobile Drag Handle */}
             <div 
-              className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-4 sm:hidden mt-2 cursor-pointer hover:bg-white/30 transition-colors"
+              className={`w-12 h-1.5 ${dark ? 'bg-white/20 hover:bg-white/30' : 'bg-black/20 hover:bg-black/30'} rounded-full mx-auto mb-4 sm:hidden mt-2 cursor-pointer transition-colors`}
               onClick={onClose}
               aria-label="Close modal"
               role="button"
@@ -149,10 +151,10 @@ export const ShareModal = ({ isOpen, onClose, postId }) => {
             />
             
             {/* Header */}
-            <div className="px-4 sm:px-5 pb-2 sm:pb-3 border-b border-white/5 mb-3 sm:mb-4">
+            <div className={`px-4 sm:px-5 pb-2 sm:pb-3 border-b ${dark ? 'border-[#252525]' : 'border-[#E8E8EC]'} mb-3 sm:mb-4`}>
               <h3 
                 id="share-modal-title"
-                className="text-white font-bold text-center text-base"
+                className={`${dark ? 'text-white' : 'text-[#111111]'} font-bold text-center text-base`}
               >
                 Share to
               </h3>
@@ -171,10 +173,10 @@ export const ShareModal = ({ isOpen, onClose, postId }) => {
                   aria-label={`Share to ${p.name}`}
                   disabled={isSharing}
                 >
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/5 flex items-center justify-center">
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full ${dark ? 'bg-white/10' : 'bg-black/5'} flex items-center justify-center`}>
                     {p.icon}
                   </div>
-                  <span className="text-[10px] sm:text-[11px] font-medium text-white/80 text-center">
+                  <span className={`text-[10px] sm:text-[11px] font-medium ${dark ? 'text-white/60' : 'text-[#666666]'} text-center`}>
                     {p.name}
                   </span>
                 </button>
@@ -182,11 +184,11 @@ export const ShareModal = ({ isOpen, onClose, postId }) => {
             </div>
             
             {/* Cancel Button */}
-            <div className="px-4 sm:px-5 pt-4 sm:pt-5 mt-2 border-t border-white/5">
+            <div className={`px-4 sm:px-5 pt-4 sm:pt-5 mt-2 border-t ${dark ? 'border-[#252525]' : 'border-[#E8E8EC]'}`}>
               <button
                 onClick={onClose}
                 onKeyDown={(e) => handleKeyDown(e, onClose)}
-                className="w-full py-2.5 sm:py-3 rounded-full bg-white/5 text-white/70 font-semibold text-[13px] sm:text-[14px] hover:bg-white/10 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-white/20"
+                className={`w-full py-2.5 sm:py-3 rounded-full ${dark ? 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white' : 'bg-black/5 text-[#8A8A8F] hover:bg-black/10 hover:text-[#111111]'} font-semibold text-[13px] sm:text-[14px] transition-all focus:outline-none focus:ring-2 focus:ring-black/20`}
                 aria-label="Cancel share"
               >
                 Cancel

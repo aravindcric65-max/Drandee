@@ -2,20 +2,7 @@
 import React from 'react';
 
 const DefaultAvatar = ({ size = 36, src = null, alt = "avatar", className = "", style = {}, onClick = null, creatorId = null, creatorName = "" }) => {
-  const getProxyUrl = (url) => {
-    if (!url) return null;
-    // Fix issue where backend returns frontend URL for uploads
-    if (url.includes('localhost:3000/uploads/')) {
-      return url.replace('localhost:3000', 'localhost:5000');
-    }
-    // If it's a relative URL to uploads, point to backend
-    if (url.startsWith('/uploads/')) {
-      return `http://localhost:5000${url}`;
-    }
-    return url;
-  };
-
-  const finalSrc = getProxyUrl(src);
+  const finalSrc = src || null;
 
   const handleClick = (e) => {
     if (onClick) onClick(e);

@@ -8,8 +8,66 @@ const Search = () => {
   const [query, setQuery] = useState("");
   const [recent, setRecent] = useState([]);
   const inputRef = useRef(null);
+  const debounceTimer = useRef(null);
+
+  // API search state
+  const [apiResults, setApiResults] = useState({ users: [], posts: [] });
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
+
+  // Debounced API search
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+    const q = query.trim();
+    if (!q) {
+      setApiResults({ users: [], posts: [] });
+      setSearchError(null);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setSearchError(null);
+
+    const controller = new AbortController();
+
+    debounceTimer.current = setTimeout(async () => {
+      try {
+        const [usersRes, postsRes] = await Promise.all([
+          fetch(`/api/search/users?q=${encodeURIComponent(q)}&limit=10`, { signal: controller.signal }),
+          fetch(`/api/search/posts?q=${encodeURIComponent(q)}&limit=20`, { signal: controller.signal }),
+        ]);
+
+        const [usersData, postsData] = await Promise.all([
+          usersRes.json(),
+          postsRes.json(),
+        ]);
+
+        setApiResults({
+          users: usersData.success ? (usersData.users || []) : [],
+          posts: postsData.success ? (postsData.posts || []) : [],
+        });
+
+        if (!usersData.success && !postsData.success) {
+          setSearchError("Search failed. Please try again.");
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') return; // stale request cancelled — do not update state
+        setSearchError("Search failed. Please try again.");
+        setApiResults({ users: [], posts: [] });
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      controller.abort();
+    };
+  }, [query]);
 
   const trendingTags = useMemo(() => {
     const tagMap = {};
@@ -39,15 +97,6 @@ const Search = () => {
       });
     return Array.from(seen.values()).slice(0, 6);
   }, [posts]);
-
-  const results = useMemo(() => {
-    const q = query.toLowerCase().trim();
-    if (!q) return [];
-    return posts.filter((p) =>
-      [p.creatorName, p.caption, p.overlayText, p.source, ...(p.tags || [])]
-        .some((f) => f && f.toLowerCase().includes(q))
-    );
-  }, [query, posts]);
 
   const fmt = (n) => {
     if (!n) return "0";
@@ -113,33 +162,61 @@ const Search = () => {
 
         {query.trim() ? (
           <>
-            <div style={S.resultsHdr}>
-              {results.length} result{results.length !== 1 ? "s" : ""} for "{query}"
-            </div>
-            {results.length === 0 ? (
+            {isLoading ? (
+              <div style={S.resultsHdr}>Searching...</div>
+            ) : searchError ? (
               <div style={S.emptyWrap}>
-                <p style={S.emptyTitle}>No results found</p>
-                <p style={S.emptySub}>Try a different name or tag</p>
+                <p style={S.emptyTitle}>Something went wrong</p>
+                <p style={S.emptySub}>{searchError}</p>
               </div>
             ) : (
-              results.map((post) => (
-                <div
-                  key={post.id}
-                  style={S.resultRow}
-                  onClick={() => navigate(`/profile/${post.creatorId}`)}
-                >
-                  <div style={S.resultAv}>
-                    {post.creatorName?.charAt(0).toUpperCase()}
-                  </div>
-                  <div style={S.resultInfo}>
-                    <span style={S.resultName}>@{post.creatorName}</span>
-                    <span style={S.resultCaption}>
-                      {post.caption || post.overlayText || "No caption"}
-                    </span>
-                  </div>
-                  <span style={S.resultCount}>{fmt(post.totalRespects)}</span>
+              <>
+                <div style={S.resultsHdr}>
+                  {apiResults.users.length + apiResults.posts.length} result{(apiResults.users.length + apiResults.posts.length) !== 1 ? "s" : ""} for "{query}"
                 </div>
-              ))
+                {apiResults.users.length === 0 && apiResults.posts.length === 0 ? (
+                  <div style={S.emptyWrap}>
+                    <p style={S.emptyTitle}>No results found</p>
+                    <p style={S.emptySub}>Try a different name or tag</p>
+                  </div>
+                ) : (
+                  <>
+                    {apiResults.users.map((user) => (
+                      <div
+                        key={`user-${user.id}`}
+                        style={S.resultRow}
+                        onClick={() => navigate(`/profile/${user.id}`)}
+                      >
+                        <div style={S.resultAv}>
+                          {(user.name || user.username || "?").charAt(0).toUpperCase()}
+                        </div>
+                        <div style={S.resultInfo}>
+                          <span style={S.resultName}>{user.name || user.username}</span>
+                          <span style={S.resultCaption}>@{user.username}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {apiResults.posts.map((post) => (
+                      <div
+                        key={`post-${post.id}`}
+                        style={S.resultRow}
+                        onClick={() => navigate(`/profile/${post.creatorId || post.user_id}`)}
+                      >
+                        <div style={S.resultAv}>
+                          {(post.creatorName || post.creator_name || "?").charAt(0).toUpperCase()}
+                        </div>
+                        <div style={S.resultInfo}>
+                          <span style={S.resultName}>@{post.creatorName || post.creator_name || post.creator_username}</span>
+                          <span style={S.resultCaption}>
+                            {post.caption || post.overlayText || post.overlay_text || "No caption"}
+                          </span>
+                        </div>
+                        <span style={S.resultCount}>{fmt(post.totalRespects || post.total_respects)}</span>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </>
             )}
           </>
         ) : (

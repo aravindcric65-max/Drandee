@@ -145,7 +145,14 @@ const VideoEditor = ({ mediaItems, initialSettings, onBack, onNext }) => {
         {activeTool === 'text' && <TextEditor settings={settings} setSettings={setSettings} onClose={() => setActiveTool(null)} />}
         {activeTool === 'adjust' && <AdjustmentsPanel settings={settings} setSettings={setSettings} onClose={() => setActiveTool(null)} />}
         {activeTool === 'sound' && <SoundPanel settings={settings} setSettings={setSettings} onClose={() => setActiveTool(null)} />}
-        {activeTool === 'cover' && <CoverSelector onClose={() => setActiveTool(null)} />}
+        {activeTool === 'cover' && (
+          <CoverSelector 
+            videoFile={currentItem?.file}
+            selectedFrame={settings.coverTime}
+            onChange={(url, time) => setSettings(prev => ({ ...prev, cover: url, coverTime: time }))}
+            onClose={() => setActiveTool(null)} 
+          />
+        )}
       </AnimatePresence>
     </div>
   );

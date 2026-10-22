@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
+import { motion } from 'framer-motion';
 
 const FeedModeTabs = ({ mode, setMode }) => {
   const tabs = useMemo(() => [
@@ -27,7 +28,7 @@ const FeedModeTabs = ({ mode, setMode }) => {
       role="navigation"
     >
       <div 
-        className="flex min-h-[48px] sm:min-h-[52px] items-center gap-0.5 sm:gap-1 border-t border-white/[0.05] pt-1" 
+        className="flex min-h-[52px] items-center gap-0.5 sm:gap-1 border-t border-[#E8E8EC] pt-1" 
         role="tablist"
         aria-label="Feed tabs"
       >
@@ -39,10 +40,10 @@ const FeedModeTabs = ({ mode, setMode }) => {
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
               onKeyDown={(e) => handleKeyDown(e, tab.id)}
-              className={`relative flex-1 min-h-[40px] sm:min-h-[44px] rounded-t-lg px-2 sm:px-2.5 pb-2 pt-1.5 text-[12px] sm:text-[13px] md:text-[14px] font-semibold tracking-[-0.01em] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/30 focus:ring-inset ${
+              className={`relative flex-1 min-h-[44px] rounded-t-lg px-2 sm:px-2.5 pb-2 pt-1.5 text-[12px] sm:text-[13px] md:text-[14px] tracking-[-0.01em] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/30 focus:ring-inset ${
                 isSelected
-                  ? 'bg-[#7F77DD]/10 text-white'
-                  : 'text-white/40 hover:text-white/60'
+                  ? 'text-[#111111] font-semibold bg-[#7F77DD]/5'
+                  : 'text-[#8A8A8F] font-medium hover:text-[#333333]'
               }`}
               type="button"
               role="tab"
@@ -55,9 +56,11 @@ const FeedModeTabs = ({ mode, setMode }) => {
               
               {/* Active Indicator */}
               {isSelected && (
-                <span 
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] sm:w-[65%] h-[2.5px] sm:h-[3px] rounded-t-full bg-[#7F77DD] shadow-[0_0_10px_rgba(127,119,221,0.5)]"
+                <motion.span 
+                  layoutId="activeFeedTab"
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] sm:w-[65%] h-[2.5px] sm:h-[3px] rounded-t-full bg-gradient-to-r from-[#4ECDC4] to-[#7F77DD]"
                   aria-hidden="true"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
             </button>

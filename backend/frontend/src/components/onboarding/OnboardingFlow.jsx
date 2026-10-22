@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../context/UserContext';
 import DrandeeLogo from '../brand/DrandeeLogo';
-import { apiGet, apiPost, auth } from '../../api';
+import { apiGet, apiPost } from '../../api';
 
 const interestsList = [
   { id: 'music', label: 'Music', icon: '🎵' },
@@ -23,7 +23,7 @@ const interestsList = [
 
 const OnboardingFlow = ({ onComplete }) => {
   const { user, updateUser } = useUser();
-  const [step, setStep] = useState(user?.username ? 'interests' : 'username');
+  const [step, setStep] = useState(!user?.onboardingCompleted && !user?.username ? "username" : "interests");
   
   // Username state
   const [usernameInput, setUsernameInput] = useState('');
@@ -52,7 +52,7 @@ const OnboardingFlow = ({ onComplete }) => {
       
       setUsernameStatus('checking');
       try {
-        const res = await apiGet(`/api/user/check-username?username=${clean}`, auth(user?.token || localStorage.getItem('token')));
+        const res = await apiGet(`/api/user/check-username?username=${clean}`, {});
         if (res.available) {
           setUsernameStatus('available');
         } else {
@@ -74,7 +74,7 @@ const OnboardingFlow = ({ onComplete }) => {
     
     setIsSubmitting(true);
     try {
-      const res = await apiPost('/api/user/onboarding', { username: usernameInput }, auth(user?.token || localStorage.getItem('token')));
+      const res = await apiPost('/api/user/onboarding', { username: usernameInput }, {});
       if (res.success) {
         updateUser(res.user);
         setStep('interests');
@@ -103,16 +103,19 @@ const OnboardingFlow = ({ onComplete }) => {
   };
 
   const handleInterestsSubmit = async () => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const res = await apiPost('/api/user/onboarding', { interests: selectedInterests }, auth(user?.token || localStorage.getItem('token')));
+      const res = await apiPost('/api/user/onboarding', { interests: selectedInterests }, {});
       if (res.success) {
         updateUser(res.user);
         onComplete();
+      } else {
+        setErrorMessage(res.error || 'Something went wrong. Please try again.');
       }
     } catch (err) {
-      console.error(err);
-      onComplete(); // Failsafe fallback
+      console.error('[OnboardingFlow] interests submit failed:', err);
+      setErrorMessage('Failed to save preferences. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

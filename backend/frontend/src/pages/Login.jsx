@@ -1,9 +1,11 @@
 // frontend/src/pages/Login.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DrandeeLogo from '../components/brand/DrandeeLogo';
 import DrandeeWordmark from '../components/brand/DrandeeWordmark';
+import { getRedirectResult } from 'firebase/auth';
+import { auth } from '../firebase/config';
 
 /* ── Google SVG icon inline — no broken img needed ── */
 const GoogleIcon = () => (
@@ -40,18 +42,10 @@ export default function Login() {
   const [passFocus, setPF]          = useState(false);
   const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
   const navigate = useNavigate();
-
-  const cleanFirebaseError = (msg = '') =>
-    msg.replace('Firebase: ', '').replace(/ \(auth\/.*?\)\.?/g, '').trim() ||
-    'Something went wrong. Please try again.';
-
-  const syncBackend = async (user) => {
-    const token = await user.getIdToken(true);
-    localStorage.setItem('token', token);
-    localStorage.setItem('userId', user.uid);
+  const syncBackend = React.useCallback(async (user) => {
     const res = await fetch(BACKEND, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      headers: { 'Content-Type': 'application/json', },
       body: JSON.stringify({ uid: user.uid, email: user.email, displayName: user.displayName, photoURL: user.photoURL }),
     });
     if (!res.ok) throw new Error('Server sync failed. Please try again.');
@@ -59,23 +53,51 @@ export default function Login() {
     localStorage.setItem('user', JSON.stringify(data.user));
     window.dispatchEvent(new Event('user_updated'));
     navigate('/feed', { replace: true });
+  }, [navigate]);
+
+  useEffect(() => {
+    const checkRedirect = async () => {
+      try {
+        setGL(true);
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          await syncBackend(result.user);
+        }
+      } catch (err) {
+        setError(cleanFirebaseError(err));
+      } finally {
+        setGL(false);
+      }
+    };
+    checkRedirect();
+  }, [syncBackend]);
+
+  const cleanFirebaseError = (err) => {
+    const code = err?.code || '';
+    if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'Invalid email or password.';
+    if (code === 'auth/user-disabled') return 'This account has been disabled.';
+    if (code === 'auth/network-request-failed') return 'Unable to connect to Firebase. Check your internet connection and try again.';
+    if (code === 'auth/too-many-requests') return 'Too many attempts. Please try again later.';
+    const msg = err?.message || '';
+    return msg.replace('Firebase: ', '').replace(/ \(auth\/.*?\)\.?/g, '').trim() || 'Something went wrong. Please try again.';
   };
 
   const handleGoogle = async () => {
     setError(''); setGL(true);
     try   { const u = await signInWithGoogle(); await syncBackend(u); }
-    catch (e) { setError(cleanFirebaseError(e.message)); }
+    catch (e) { setError(cleanFirebaseError(e)); }
     finally   { setGL(false); }
   };
 
   const handleEmail = async (e) => {
     e.preventDefault(); setError(''); setLoading(true);
     try {
+      const trimmedEmail = email.trim();
       const u = isSignup
-        ? await signUpWithEmail(email, password)
-        : await signInWithEmail(email, password);
+        ? await signUpWithEmail(trimmedEmail, password)
+        : await signInWithEmail(trimmedEmail, password);
       await syncBackend(u);
-    } catch (e) { setError(cleanFirebaseError(e.message)); }
+    } catch (e) { setError(cleanFirebaseError(e)); }
     finally     { setLoading(false); }
   };
 

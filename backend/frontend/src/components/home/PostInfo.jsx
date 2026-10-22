@@ -1,19 +1,55 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
+
 export const PostInfo = ({ post, onTagClick }) => {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   
   const caption = useMemo(() => {
-    return post.caption || post.content?.caption || '';
-  }, [post.caption, post.content]);
+    // Safe string extractor — never returns an object, never calls .trim() on non-strings
+    const extractStr = (val) => {
+      if (val == null) return '';
+      if (typeof val === 'string') return val;
+      if (typeof val === 'object') {
+        const v = val.caption || val.text || '';
+        return typeof v === 'string' ? v : '';
+      }
+      return String(val);
+    };
+
+    // Fallback cascade: post.caption → post.content.caption → post.text → post.content.text
+    const pCap = extractStr(post.caption);
+    if (pCap.trim()) return pCap;
+
+    const cCap = extractStr(post.content?.caption);
+    if (cCap.trim()) return cCap;
+
+    const pText = extractStr(post.text);
+    if (pText.trim()) return pText;
+
+    const cText = extractStr(post.content?.text);
+    if (cText.trim()) return cText;
+
+    return '';
+  }, [post.caption, post.content, post.text]);
 
   const tags = useMemo(() => {
-    return post.tags || post.content?.tags || post.hashtags || [];
-  }, [post.tags, post.content, post.hashtags]);
+    const raw = post.tags || post.content?.tags || post.hashtags || [];
+    const fromArray = Array.isArray(raw)
+      ? raw.map(t => (typeof t === 'string' ? t : t != null ? String(t) : null)).filter(Boolean)
+      : [];
+    if (fromArray.length > 0) return fromArray;
+    // Parse #hashtags directly from caption when tags array is empty
+    const src = caption; // caption is already computed in this component
+    if (!src) return [];
+    const matches = src.match(/#[\p{L}\p{N}_]+/gu) || [];
+    return [...new Set(matches.map(t => t.slice(1)))];
+  }, [post.tags, post.content, post.hashtags, caption]);
 
   const hasContent = useMemo(() => {
-    return caption || (tags && tags.length > 0);
+    return Boolean(caption) || tags.length > 0;
   }, [caption, tags]);
 
   const toggleExpand = useCallback((e) => {
@@ -29,8 +65,47 @@ export const PostInfo = ({ post, onTagClick }) => {
   }, []);
 
   const isLong = useMemo(() => {
-    return caption && caption.length > 100;
+    return caption.length > 100;
   }, [caption]);
+
+  const renderCaptionWithTags = useCallback((text) => {
+    if (!text) return null;
+    const TAG_RE = /#([\p{L}\p{N}_]+)/gu;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    let partIdx = 0;
+    while ((match = TAG_RE.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(<span key={`t-${partIdx++}`}>{text.slice(lastIndex, match.index)}</span>);
+      }
+      const tagText = match[1];
+      parts.push(
+        <span
+          key={`h-${partIdx++}`}
+          onClick={(e) => { e.stopPropagation(); if (onTagClick) onTagClick(tagText); else navigate(`/tag/${tagText}`); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); if (onTagClick) onTagClick(tagText); else navigate(`/tag/${tagText}`); }}}
+          className="text-[#7F77DD] font-medium cursor-pointer hover:underline"
+          role="link"
+          tabIndex={0}
+          aria-label={`Hashtag: ${tagText}`}
+        >
+          {match[0]}
+        </span>
+      );
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < text.length) {
+      parts.push(<span key={`t-${partIdx}`}>{text.slice(lastIndex)}</span>);
+    }
+    return parts;
+  }, [onTagClick, navigate]);
+
+  const extraTags = useMemo(() => {
+    if (tags.length === 0) return [];
+    const inCaption = new Set((caption.match(/#([\p{L}\p{N}_]+)/gu) || []).map(t => t.slice(1).toLowerCase()));
+    return tags.filter(t => !inCaption.has(t.toLowerCase()));
+  }, [tags, caption]);
 
   if (!hasContent) {
     return null;
@@ -47,7 +122,7 @@ export const PostInfo = ({ post, onTagClick }) => {
       {caption && (
         <motion.div 
           layout
-          className="w-full text-white/90 text-[14px] sm:text-[15px] leading-relaxed mb-2 cursor-pointer overflow-hidden"
+          className="w-full text-inherit text-[14px] sm:text-[15px] leading-relaxed mb-2 cursor-pointer overflow-hidden"
           onClick={toggleExpand}
           onKeyDown={handleKeyDown}
           tabIndex={0}
@@ -60,7 +135,7 @@ export const PostInfo = ({ post, onTagClick }) => {
             layout 
             className={`break-words ${!expanded ? 'line-clamp-3' : ''}`}
           >
-            {caption}
+            {renderCaptionWithTags(caption)}
           </motion.p>
           
           {isLong && !expanded && (
@@ -68,30 +143,52 @@ export const PostInfo = ({ post, onTagClick }) => {
               layout
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="inline-block mt-1 font-medium text-white/50 hover:text-white transition-colors"
+              className="inline-block mt-1 font-medium text-[#8A8A8F] hover:text-[#111111] transition-colors"
             >
               more
+            </motion.span>
+          )}
+          {isLong && expanded && (
+            <motion.span
+              layout
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="inline-block mt-1 font-medium text-[#8A8A8F] hover:text-[#111111] transition-colors"
+            >
+              less
             </motion.span>
           )}
         </motion.div>
       )}
 
       {/* Tags */}
-      {tags && tags.length > 0 && (
+      {extraTags.length > 0 && (
         <div 
           className="flex flex-wrap gap-1.5 mt-1"
           role="list"
           aria-label="Post tags"
         >
-          {tags.map((tag, idx) => {
-            const tagText = typeof tag === 'string' ? tag.replace('#', '') : tag;
+          {extraTags.map((tag, idx) => {
+            const tagText = tag.replace(/^#+/, '');
             
             return (
               <span 
                 key={idx}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onTagClick && onTagClick(tagText);
+                  if (onTagClick) {
+                    onTagClick(tagText);
+                  } else {
+                    navigate(`/tag/${tagText}`);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (onTagClick) onTagClick(tagText);
+                    else navigate(`/tag/${tagText}`);
+                  }
                 }}
                 className="text-[#7F77DD] text-[13px] sm:text-[14px] hover:underline cursor-pointer font-medium"
                 role="listitem"

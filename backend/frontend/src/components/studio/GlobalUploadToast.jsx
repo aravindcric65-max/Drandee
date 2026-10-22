@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUpload } from '../../context/UploadContext';
 import { XIcon, CheckCircleIcon, AlertCircleIcon } from 'lucide-react';
 
 const GlobalUploadToast = () => {
+  const navigate = useNavigate();
   const { uploads, clearUpload } = useUpload();
 
   if (!uploads || uploads.length === 0) return null;
@@ -77,8 +79,7 @@ const GlobalUploadToast = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   clearUpload(upload.id);
-                  // Just reload the page to see the new post in the feed
-                  window.location.href = '/'; 
+                  navigate('/');
                 }}
                 className="ml-2 px-3 py-1.5 bg-primary/20 text-primary text-xs font-bold rounded-full hover:bg-primary/30 transition-colors flex-shrink-0"
               >

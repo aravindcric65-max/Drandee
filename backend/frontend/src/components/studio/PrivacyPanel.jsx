@@ -11,7 +11,9 @@ const PrivacyPanel = ({ initialSettings = {}, onBack, onClose, onSave, onNext })
   
   const handleSaveDraft = () => {
     if (window.confirm("Do you want to save this to drafts and keep editing later?")) {
-      onSave({ caption, privacy, allowComments, allowDuet, isDraft: true });
+      const extractedTags = (caption.match(/#[\p{L}\p{N}_]+/gu) || [])
+        .map(t => t.slice(1).toLowerCase());
+      onSave({ caption, privacy, allowComments, allowDuet, isDraft: true, hashtags: [...new Set(extractedTags)] });
       if (onClose) onClose();
       else onBack();
     }
@@ -30,8 +32,12 @@ const PrivacyPanel = ({ initialSettings = {}, onBack, onClose, onSave, onNext })
     if (isPublishing) return;
     setIsPublishing(true);
     try {
-      onSave({ caption, privacy, allowComments, allowDuet, isDraft: false });
-      await onNext();
+      const extractedTags = (caption.match(/#[\p{L}\p{N}_]+/gu) || [])
+        .map(t => t.slice(1).toLowerCase());
+      const uniqueTags = [...new Set(extractedTags)];
+      const finalSettings = { caption, privacy, allowComments, allowDuet, isDraft: false, hashtags: uniqueTags };
+      onSave(finalSettings);               // keep saving to parent state for other consumers
+      await onNext(finalSettings);         // pass finalSettings directly so caller doesn't need flushed state
     } finally {
       setIsPublishing(false);
     }
@@ -72,13 +78,16 @@ const PrivacyPanel = ({ initialSettings = {}, onBack, onClose, onSave, onNext })
         
         {/* Caption & Cover Area */}
         <div className="p-4 flex gap-4 border-b border-white/5">
+          <label htmlFor="caption-input" className="sr-only">Caption</label>
           <textarea
+            id="caption-input"
+            name="caption"
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             placeholder="Describe your post, add hashtags..."
             className="flex-1 bg-transparent text-white placeholder-gray-500 resize-none outline-none h-32"
           />
-          <label className="relative w-24 h-32 bg-black rounded-xl overflow-hidden border border-white/10 group cursor-pointer block">
+          <label htmlFor="cover-upload" className="relative w-24 h-32 bg-black rounded-xl overflow-hidden border border-white/10 group cursor-pointer block">
             {initialSettings.thumbnail_url ? (
               <img src={initialSettings.thumbnail_url} alt="Cover" className="w-full h-full object-cover" />
             ) : (
@@ -87,7 +96,7 @@ const PrivacyPanel = ({ initialSettings = {}, onBack, onClose, onSave, onNext })
                 <span className="text-[10px] text-gray-400 group-hover:text-white transition-colors">Select Cover</span>
               </div>
             )}
-            <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+            <input id="cover-upload" name="coverUpload" type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
           </label>
         </div>
 

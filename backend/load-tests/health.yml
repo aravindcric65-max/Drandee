@@ -1,0 +1,119 @@
+# ============================================================
+# load-tests/health.yml
+# Phase 6 — Step 3: Load Test — Health / Liveness probes
+#
+# AUDIT NOTE (P1 — pre-existing, not introduced by Phase 6):
+#   routes/health.js exists with full /live, /ready, /detailed
+#   endpoints but is NOT mounted in server.js. The catch-all
+#   app.use("/api", mediaRoutes) at line 252 of server.js
+#   intercepts /api/health/* before the inline GET /api/health
+#   handler at line 315 can respond.
+#
+#   This is documented in phase6_audit.md under P1 Findings.
+#   It is NOT fixed here — that would be an architectural
+#   change outside Phase 6 scope.
+#
+# WHAT IS ACTUALLY REACHABLE:
+#   GET /          → root ping (no auth required) ✅
+#   GET /api/health → blocked by mediaRoutes catch-all ❌
+#   GET /api/health/live etc → unregistered ❌
+#
+# This smoke test therefore uses GET / as the liveness probe.
+# When routes/health.js is properly mounted, update this file
+# to use /api/health, /api/health/live, /api/health/ready.
+#
+# Environments:
+#   smoke  → 1 VU, 30s
+#   load   → 30 VU, 2m
+#   stress → 100 VU, 3m — STAGING ONLY
+# ============================================================
+
+config:
+  # Default target: localhost. Override via CLI:
+  #   artillery run load-tests/health.yml -e smoke --target http://your-staging-server
+  target: "http://localhost:5000"
+
+  plugins:
+    expect: {}
+
+  defaults:
+    headers:
+      Accept: "application/json"
+
+  ensure:
+    p99: 500
+    maxErrorRate: 1
+
+  environments:
+
+    smoke:
+      phases:
+        - name: "smoke"
+          duration: 30
+          arrivalRate: 1
+          rampTo: 2
+
+    load:
+      phases:
+        - name: "load-warmup"
+          duration: 30
+          arrivalRate: 2
+          rampTo: 10
+        - name: "load-sustained"
+          duration: 90
+          arrivalRate: 10
+          rampTo: 30
+        - name: "load-cooldown"
+          duration: 30
+          arrivalRate: 30
+          rampTo: 5
+
+    stress:
+      # ⚠️ STAGING ONLY
+      phases:
+        - name: "stress-ramp"
+          duration: 45
+          arrivalRate: 5
+          rampTo: 50
+        - name: "stress-peak"
+          duration: 120
+          arrivalRate: 50
+          rampTo: 100
+        - name: "stress-recovery"
+          duration: 45
+          arrivalRate: 100
+          rampTo: 5
+
+# ── Scenarios ────────────────────────────────────────────────
+# NOTE: When routes/health.js is mounted at /api/health,
+# replace these with the sub-path scenarios documented in
+# the original comments above.
+
+scenarios:
+
+  - name: "Root liveness ping (GET /)"
+    # Tests that the Node.js process is alive and responding.
+    # Equivalent to a Kubernetes liveness probe until /api/health
+    # routes are properly mounted.
+    weight: 60
+    flow:
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+            - hasProperty: "success"
+            - hasProperty: "message"
+
+  - name: "Root liveness — repeated (simulates k8s probe cadence)"
+    weight: 40
+    flow:
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+            - hasProperty: "success"
+      - think: 1
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200

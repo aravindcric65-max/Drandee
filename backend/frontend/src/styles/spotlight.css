@@ -9,7 +9,7 @@
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
-  background-color: var(--bg-primary, #050505);
+  background-color: #FFFFFF;
   /* Hide scrollbar for immersive feel */
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */

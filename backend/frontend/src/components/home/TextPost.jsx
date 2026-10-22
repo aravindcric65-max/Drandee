@@ -7,8 +7,32 @@ export const TextPost = ({ post, isActive, index, interactionProps }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   const fullText = useMemo(() => {
-    return post.content?.text || post.caption || '';
-  }, [post.content, post.caption]);
+    // Safe string extractor — never returns an object
+    const extractStr = (val) => {
+      if (val == null) return '';
+      if (typeof val === 'string') return val;
+      if (typeof val === 'object') {
+        const v = val.text || val.caption || '';
+        return typeof v === 'string' ? v : '';
+      }
+      return String(val);
+    };
+
+    // For text posts: content.text first (may include overlay_text), then content.caption, then flat fields
+    const cText = extractStr(post.content?.text);
+    if (cText.trim()) return cText;
+    
+    const cCap = extractStr(post.content?.caption);
+    if (cCap.trim()) return cCap;
+    
+    const pText = extractStr(post.text);
+    if (pText.trim()) return pText;
+    
+    const pCap = extractStr(post.caption);
+    if (pCap.trim()) return pCap;
+    
+    return '';
+  }, [post.content, post.text, post.caption]);
 
   const paragraphs = useMemo(() => {
     return fullText.split('\n').filter(p => p.trim() !== '');
@@ -36,14 +60,24 @@ export const TextPost = ({ post, isActive, index, interactionProps }) => {
     setIsExpanded(true);
   }, []);
 
+  const handleCollapse = useCallback((e) => {
+    e.stopPropagation();
+    setIsExpanded(false);
+  }, []);
+
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      setIsExpanded(true);
+      setIsExpanded(prev => !prev);
     }
   }, []);
 
-  const hasTags = post.tags && post.tags.length > 0;
+  // Safe tags: ensure every entry is a string
+  const tags = useMemo(() => {
+    const raw = post.tags || post.hashtags || [];
+    if (!Array.isArray(raw)) return [];
+    return raw.map(t => (typeof t === 'string' ? t : t != null ? String(t) : null)).filter(Boolean);
+  }, [post.tags, post.hashtags]);
 
   return (
     <div 
@@ -57,15 +91,9 @@ export const TextPost = ({ post, isActive, index, interactionProps }) => {
         onMore={interactionProps.onMore} 
       />
       
-      {/* Premium typography container */}
+      {/* Text body container */}
       <div 
-        className="w-full pt-5 sm:pt-6 pb-6 sm:pb-8 flex flex-col items-start justify-center cursor-pointer mt-2 px-1"
-        onClick={() => isLong && !isExpanded && handleExpand({ stopPropagation: () => {} })}
-        onKeyDown={handleKeyDown}
-        tabIndex={isLong && !isExpanded ? 0 : -1}
-        role="button"
-        aria-expanded={isExpanded}
-        aria-label={isExpanded ? 'Show less text' : 'Show more text'}
+        className="w-full pt-5 sm:pt-6 pb-6 sm:pb-8 flex flex-col items-start justify-center mt-2 px-1"
       >
         <div className="w-full flex flex-col gap-3 sm:gap-4">
           <AnimatePresence mode="popLayout">
@@ -88,6 +116,7 @@ export const TextPost = ({ post, isActive, index, interactionProps }) => {
             ))}
           </AnimatePresence>
 
+          {/* Expand/collapse controls */}
           {isLong && !isExpanded && (
             <button 
               onClick={handleExpand}
@@ -98,17 +127,27 @@ export const TextPost = ({ post, isActive, index, interactionProps }) => {
               more
             </button>
           )}
+          {isLong && isExpanded && (
+            <button
+              onClick={handleCollapse}
+              onKeyDown={handleKeyDown}
+              className="self-start font-medium text-white/50 hover:text-white transition-colors mt-2 focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/50 rounded px-2 py-1"
+              aria-label="Show less text"
+            >
+              less
+            </button>
+          )}
         </div>
         
         {/* Tags */}
-        {hasTags && (
+        {tags.length > 0 && (
           <div 
             className="flex flex-wrap gap-1.5 mt-4"
             role="list"
             aria-label="Post tags"
           >
-            {post.tags.map((tag, idx) => {
-              const tagText = typeof tag === 'string' ? tag.replace('#', '') : tag;
+            {tags.map((tag, idx) => {
+              const tagText = tag.replace(/^#+/, '');
               
               return (
                 <span 

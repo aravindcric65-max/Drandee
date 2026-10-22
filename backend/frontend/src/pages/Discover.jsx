@@ -41,31 +41,31 @@ const Discover = () => {
   const displayedPosts = search ? filteredPosts : (activeTab === "trending" ? trending : suggested);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col pb-[calc(64px+env(safe-area-inset-bottom))] overflow-y-auto">
-      <header className="sticky top-0 z-50 bg-[#09090e]/90 backdrop-blur-md border-b border-white/5">
+    <div className="min-h-screen bg-white text-[#111111] flex flex-col pb-[calc(64px+env(safe-area-inset-bottom))] overflow-y-auto">
+      <header className="sticky top-0 z-50 bg-[#F7F7F9]/90 backdrop-blur-md border-b border-[#E8E8EC]">
         <div className="flex items-center gap-3 p-4 pt-[max(1rem,env(safe-area-inset-top))]">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-black/5 transition-colors"
           >
             <ArrowLeft size={24} />
           </button>
           <div className="flex-1 relative">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8A8A8F]" />
             <input
               placeholder="Search creators & posts..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-[var(--primary)] focus:bg-white/10 transition-all text-white placeholder:text-white/40"
+              className="w-full bg-black/5 border border-[#E8E8EC] rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-[var(--primary)] focus:bg-white transition-all text-[#111111] placeholder:text-[#8A8A8F]"
             />
           </div>
         </div>
 
         {!search && (
-          <div className="flex px-4 border-b border-white/5">
+          <div className="flex px-4 border-b border-[#E8E8EC]">
             <button
               onClick={() => setActiveTab("trending")}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors relative ${activeTab === "trending" ? "text-white" : "text-white/50"}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors relative ${activeTab === "trending" ? "text-[#111111]" : "text-[#8A8A8F]"}`}
             >
               <TrendingUp size={16} /> Trending
               {activeTab === "trending" && (
@@ -74,7 +74,7 @@ const Discover = () => {
             </button>
             <button
               onClick={() => setActiveTab("suggested")}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors relative ${activeTab === "suggested" ? "text-white" : "text-white/50"}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors relative ${activeTab === "suggested" ? "text-[#111111]" : "text-[#8A8A8F]"}`}
             >
               <Users size={16} /> Suggested
               {activeTab === "suggested" && (
@@ -90,7 +90,7 @@ const Discover = () => {
           {displayedPosts.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="py-20 text-center text-white/40 flex flex-col items-center gap-3"
+              className="py-20 text-center text-[#8A8A8F] flex flex-col items-center gap-3"
             >
               <Search size={48} className="opacity-20" />
               <p>{search ? "No results found" : "No posts to discover right now"}</p>

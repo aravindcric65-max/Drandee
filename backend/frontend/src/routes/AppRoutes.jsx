@@ -1,7 +1,8 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useContext } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
+import { UserContext } from '../context/UserContext';
 
 // Pages & Components Import (Lazy)
 const Login = lazy(() => import('../pages/Login'));
@@ -12,12 +13,43 @@ const Upload = lazy(() => import('../pages/Upload'));
 const Spotlight = lazy(() => import('../pages/Spotlight'));
 const Settings = lazy(() => import('../pages/Settings'));
 const Search = lazy(() => import('../pages/Search'));
+const HashtagPage = lazy(() => import('../pages/HashtagPage'));
 const Notifications = lazy(() => import('../pages/Notifications'));
 const OnboardingFlow = lazy(() => import('../components/onboarding/OnboardingFlow'));
+const CreatorDashboard = lazy(() => import('../pages/creator/Dashboard'));
+const CreatorAnalytics = lazy(() => import('../pages/creator/Analytics'));
+const CreatorTopPosts = lazy(() => import('../pages/creator/TopPosts'));
+const CreatorAudience = lazy(() => import('../pages/creator/Audience'));
+
+// Per-route error boundary — contains lazy-import failures to the affected route only
+class RouteErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, info) {
+    console.error('[RouteErrorBoundary]', error, info?.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', background: '#080808', color: '#fff', gap: 16 }}>
+          <p style={{ fontSize: 16, fontFamily: 'Inter, sans-serif' }}>This page failed to load.</p>
+          <a href="/" style={{ color: '#7F77DD', textDecoration: 'underline', fontSize: 14, fontFamily: 'Inter, sans-serif' }}>Go to home</a>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // 1. Protected Route
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const { user: backendUser } = useContext(UserContext) || {};
   
   if (loading) {
     return (
@@ -31,8 +63,8 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Intercept for onboarding
-  if (user && user.onboardingCompleted === false) {
+  // Intercept for onboarding using the backend user
+  if (backendUser && backendUser.onboardingCompleted === false) {
     // If onboarding is not completed, we render the flow. 
     // It will call updateUser which triggers a re-render and bypasses this.
     return (
@@ -86,16 +118,23 @@ const AppRoutes = () => {
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         
         {/* ===== PROTECTED ROUTES ===== */}
-        <Route path="/feed" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/reels" element={<ProtectedRoute><Reels /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/creator/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
-        <Route path="/spotlight" element={<ProtectedRoute><Spotlight /></ProtectedRoute>} />
+        <Route path="/feed" element={<RouteErrorBoundary><ProtectedRoute><Home /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/reels" element={<RouteErrorBoundary><ProtectedRoute><Reels /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/profile" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/profile/:id" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/creator/:id" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/search" element={<RouteErrorBoundary><ProtectedRoute><Search /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/notifications" element={<RouteErrorBoundary><ProtectedRoute><Notifications /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/settings" element={<RouteErrorBoundary><ProtectedRoute><Settings /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/upload" element={<RouteErrorBoundary><ProtectedRoute><Upload /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/spotlight" element={<RouteErrorBoundary><ProtectedRoute><Spotlight /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/tag/:tag" element={<RouteErrorBoundary><ProtectedRoute><HashtagPage /></ProtectedRoute></RouteErrorBoundary>} />
+        
+        {/* ===== CREATOR ANALYTICS ROUTES ===== */}
+        <Route path="/creator/dashboard" element={<RouteErrorBoundary><ProtectedRoute><CreatorDashboard /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/creator/analytics" element={<RouteErrorBoundary><ProtectedRoute><CreatorAnalytics /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/creator/top-posts" element={<RouteErrorBoundary><ProtectedRoute><CreatorTopPosts /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/creator/audience" element={<RouteErrorBoundary><ProtectedRoute><CreatorAudience /></ProtectedRoute></RouteErrorBoundary>} />
         
         {/* ✅ FIXED: Thappana URL adichal /feed-kku pogum */}
         <Route path="*" element={<Navigate to="/feed" replace />} />

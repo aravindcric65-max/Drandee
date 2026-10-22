@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { VideoPost } from './VideoPost';
 import { PhotoPost } from './PhotoPost';
 import { CarouselPost } from './CarouselPost';
@@ -8,9 +8,9 @@ import { TrendingTopics } from './TrendingTopics';
 import { RecommendedCreators } from './RecommendedCreators';
 import { ContinueWatching } from './ContinueWatching';
 import { LocalCreatorDiscovery } from './LocalCreatorDiscovery';
+import { determineContentType } from '../../utils/contentType';
 
 export const FeedItem = ({ post, isActive, index, mode, onRespect, onComment, onShare, onSave, onFollow, onMore, interactionProps: externalProps }) => {
-  // Memoize interaction props to prevent unnecessary re-renders
   const interactionProps = useMemo(() => ({
     onRespect,
     onComment,
@@ -18,111 +18,47 @@ export const FeedItem = ({ post, isActive, index, mode, onRespect, onComment, on
     onSave,
     onFollow,
     onMore,
-    userInteraction: post.userInteraction || {},
-    stats: post.stats || {},
+    userInteraction: {
+      ...(post.userInteraction || {}),
+      // Normalize active state from API field variants
+      hasRespected: post.userInteraction?.hasRespected || post.hasRespected || post.has_respected || false,
+      hasSaved: post.userInteraction?.hasSaved || post.hasSaved || post.has_saved || false,
+    },
+    stats: {
+      ...(post.stats || {}),
+      // Ensure all count fields are present with correct names
+      respects: post.stats?.respects ?? post.totalRespects ?? 0,
+      comments: post.stats?.comments ?? post.comments ?? 0,
+      shares: post.stats?.shares ?? post.shares ?? 0,
+      saves: post.stats?.saves ?? post.saves ?? 0,
+      views: post.stats?.views ?? post.watchCount ?? 0,
+    },
     ...externalProps
-  }), [onRespect, onComment, onShare, onSave, onFollow, onMore, post.userInteraction, post.stats, externalProps]);
-
-  // Safe content checks
-  const hasVideoUrl = useCallback(() => {
-    return post.content?.videoUrl || post.videoUrl;
-  }, [post.content, post.videoUrl]);
-
-  const hasImageUrl = useCallback(() => {
-    return post.content?.imageUrl || post.imageUrl || (post.content?.images && post.content.images.length > 0);
-  }, [post.content, post.imageUrl]);
+  }), [onRespect, onComment, onShare, onSave, onFollow, onMore, post.userInteraction, post.hasRespected, post.has_respected, post.hasSaved, post.has_saved, post.stats, post.totalRespects, post.comments, post.shares, post.saves, post.watchCount, externalProps]);
 
   const postType = post.type;
 
-  // Render based on post type
-  switch (postType) {
-    // Standard Content Types
+  // Algorithmic modules — preserve existing type field
+  if (postType === 'module_local_creators') return <LocalCreatorDiscovery mode={mode} />;
+  if (postType === 'module_trending') return <TrendingTopics mode={mode} />;
+  if (postType === 'module_recommended_creators') return <RecommendedCreators mode={mode} />;
+  if (postType === 'module_continue_watching') return <ContinueWatching />;
+  if (postType === 'discussion') {
+    return <DiscussionPost post={post} index={index} interactionProps={interactionProps} />;
+  }
+
+  const contentType = determineContentType(post);
+
+  switch (contentType) {
     case 'video':
-      return (
-        <VideoPost 
-          post={post} 
-          isActive={isActive} 
-          index={index}
-          interactionProps={interactionProps} 
-        />
-      );
-    
-    case 'photo':
-      return (
-        <PhotoPost 
-          post={post} 
-          index={index}
-          interactionProps={interactionProps} 
-        />
-      );
-    
+      return <VideoPost post={post} isActive={isActive} index={index} interactionProps={interactionProps} mode={mode} />;
     case 'carousel':
-      return (
-        <CarouselPost 
-          post={post} 
-          index={index}
-          interactionProps={interactionProps} 
-        />
-      );
-    
+      return <CarouselPost post={post} isActive={isActive} index={index} interactionProps={interactionProps} mode={mode} />;
     case 'text':
-      return (
-        <TextPost 
-          post={post} 
-          index={index}
-          interactionProps={interactionProps} 
-        />
-      );
-    
-    case 'discussion':
-      return (
-        <DiscussionPost 
-          post={post} 
-          index={index}
-          interactionProps={interactionProps} 
-        />
-      );
-    
-    // Algorithmic Modules
-    case 'module_local_creators':
-      return <LocalCreatorDiscovery mode={mode} />;
-    
-    case 'module_trending':
-      return <TrendingTopics mode={mode} />;
-    
-    case 'module_recommended_creators':
-      return <RecommendedCreators mode={mode} />;
-    
-    case 'module_continue_watching':
-      return <ContinueWatching />;
-    
-    // Fallback for malformed or unknown data
+      return <TextPost post={post} isActive={isActive} index={index} interactionProps={interactionProps} mode={mode} />;
+    case 'image':
     default:
-      // Try to infer type from content
-      if (hasVideoUrl()) {
-        return (
-          <VideoPost 
-            post={post} 
-            isActive={isActive} 
-            index={index}
-            interactionProps={interactionProps} 
-          />
-        );
-      }
-      
-      if (hasImageUrl()) {
-        return (
-          <PhotoPost 
-            post={post} 
-            index={index}
-            interactionProps={interactionProps} 
-          />
-        );
-      }
-      
-      // Safely ignore unknown types with a warning
-      console.warn('Unknown post type:', postType, 'Post ID:', post.id);
-      return null;
+      return <PhotoPost post={post} isActive={isActive} index={index} interactionProps={interactionProps} mode={mode} />;
   }
 };
 

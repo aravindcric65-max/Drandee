@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { X, RefreshCcw, Zap, Timer, Settings2, Sparkles, Image as ImageIcon } from 'lucide-react';
 
 const Camera = ({ onClose, onRecordComplete, onGalleryClick }) => {
+  const navigate = useNavigate();
   const [permission, setPermission] = useState('prompt'); // 'prompt', 'granted', 'denied'
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -107,7 +109,7 @@ const Camera = ({ onClose, onRecordComplete, onGalleryClick }) => {
           Not Now
         </button>
         <button 
-          onClick={() => window.location.reload()}
+          onClick={() => navigate('/studio')}
           className="px-8 py-4 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-colors w-full max-w-sm"
         >
           Open Settings
