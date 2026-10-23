@@ -119,6 +119,26 @@ module.exports = (pool) => {
         `SELECT t, COUNT(*)::int AS cnt
          FROM posts p, unnest(p.tags) AS t
          WHERE p.is_deleted IS NOT TRUE
+           AND (p.moderation_status IS NULL OR p.moderation_status = 'approved')
+           AND NOT EXISTS (
+             SELECT 1 FROM user_blocks ub
+             WHERE ub.blocker_id = $1 AND ub.blocked_id = p.user_id
+           )
+           AND NOT EXISTS (
+             SELECT 1 FROM user_blocks ub2
+             WHERE ub2.blocker_id = p.user_id AND ub2.blocked_id = $1
+           )
+           AND NOT EXISTS (
+             SELECT 1 FROM user_mutes um
+             WHERE um.user_id = $1 AND um.muted_id = p.user_id
+           )
+           AND (
+             p.is_private IS NOT TRUE
+             OR EXISTS (
+               SELECT 1 FROM follows f_priv
+               WHERE f_priv.follower_id = $1 AND f_priv.following_id = p.user_id
+             )
+           )
            AND t <> $2
            AND ${TAG_MATCH}
          GROUP BY t
@@ -178,6 +198,26 @@ module.exports = (pool) => {
            LEFT JOIN audios a ON a.id = p.audio_id
            JOIN posts p2 ON p2.audio_id = p.audio_id AND p2.is_deleted IS NOT TRUE
            WHERE p.is_deleted IS NOT TRUE
+             AND (p.moderation_status IS NULL OR p.moderation_status = 'approved')
+             AND NOT EXISTS (
+               SELECT 1 FROM user_blocks ub
+               WHERE ub.blocker_id = $1 AND ub.blocked_id = p.user_id
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM user_blocks ub2
+               WHERE ub2.blocker_id = p.user_id AND ub2.blocked_id = $1
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM user_mutes um
+               WHERE um.user_id = $1 AND um.muted_id = p.user_id
+             )
+             AND (
+               p.is_private IS NOT TRUE
+               OR EXISTS (
+                 SELECT 1 FROM follows f_priv
+                 WHERE f_priv.follower_id = $1 AND f_priv.following_id = p.user_id
+               )
+             )
              AND p.audio_id IS NOT NULL
              AND ${TAG_MATCH}
            ORDER BY p.audio_id, usage_count DESC
