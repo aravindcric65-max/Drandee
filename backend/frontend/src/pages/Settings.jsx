@@ -36,7 +36,7 @@ const apiCall = async (endpoint, method = 'GET', body = null) => {
 
 /* ─── Styles ─── */
 const S = {
-  page: { background: "#121212", height: "100dvh", display: "flex", flexDirection: "column", color: "#fff", fontFamily: "Inter, sans-serif", overflowY: "auto", overflowX: "hidden", paddingBottom: "max(env(safe-area-inset-bottom), 24px)" },
+  page: { background: "#121212", height: "100dvh", display: "flex", flexDirection: "column", color: "#fff", fontFamily: "Inter, sans-serif", overflowY: "auto", overflowX: "hidden", WebkitOverflowScrolling: "touch", paddingBottom: "calc(64px + env(safe-area-inset-bottom) + 24px)" },
   topbar: { display: "flex", alignItems: "center", padding: "16px 24px", background: "rgba(18,18,18,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50, borderBottom: "1px solid rgba(255,255,255,0.05)" },
   iBtn: { background: "none", border: "none", padding: 8, cursor: "pointer", display: "flex", color: "#fff" },
   tbTitle: { fontSize: 20, fontWeight: "700", marginLeft: 16 },

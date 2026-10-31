@@ -1339,7 +1339,7 @@ const SharePfIco   = ({ color }) => si("M15 5L20 10M20 10L15 15M20 10H9C6.79 10 
 
 /* ─── styles ─────────────────────────────────────────── */
 const S = {
-  page:     { background:"#ffffff", minHeight:"100vh", color:"#000000", fontFamily:"-apple-system,system-ui,sans-serif" },
+  page:     { background:"#ffffff", height:"100dvh", overflowY:"auto", overflowX:"hidden", WebkitOverflowScrolling:"touch", color:"#000000", fontFamily:"-apple-system,system-ui,sans-serif" },
   topbar:   { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 16px 8px", position:"sticky", top:0, background:"#ffffff", zIndex:50, borderBottom:"1px solid #eeeeee" },
   tbTitle:  { fontSize:15, fontWeight:"600", color:"#000", letterSpacing:"0.2px" },
   iBtn:     { width:34, height:34, background:"none", border:"none", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0 },
