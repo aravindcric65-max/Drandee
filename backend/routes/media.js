@@ -1,16 +1,26 @@
-const express = require('express');
+﻿const express = require('express');
 
 module.exports = (pool) => {
 const router = express.Router();
 const crypto = require('crypto');
 
-// ImageKit configuration
+// ImageKit configuration — lazy/optional init to avoid startup crash when env vars are absent
 const ImageKit = require('imagekit');
-const imagekit = new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
-});
+const IMAGEKIT_CONFIGURED = !!(
+  process.env.IMAGEKIT_PUBLIC_KEY &&
+  process.env.IMAGEKIT_PRIVATE_KEY &&
+  process.env.IMAGEKIT_URL_ENDPOINT
+);
+let imagekit = null;
+if (IMAGEKIT_CONFIGURED) {
+  imagekit = new ImageKit({
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+  });
+} else {
+  console.warn('[media] ImageKit not configured — upload signature routes will return 503');
+}
 
 // Middleware
 const authMiddleware = require('../middleware/auth');
@@ -31,6 +41,9 @@ function getMediaCleanupQueue() {
 // GET /api/media/upload-signature
 router.post('/upload-signature', authMiddleware, async (req, res) => {
   try {
+    if (!imagekit) {
+      return res.status(503).json({ success: false, error: 'Media service not configured' });
+    }
     const { fileName, fileType, fileSize } = req.body;
 
     if (!fileName || !fileType || !fileSize) {
