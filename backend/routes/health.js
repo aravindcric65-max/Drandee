@@ -23,6 +23,18 @@ module.exports = (pool, redisClient) => {
     return true;
   };
 
+  // Production guard for sensitive endpoints
+  const requireMonitoringSecret = (req, res, next) => {
+    if (process.env.NODE_ENV !== 'production') return next();
+    const secret = process.env.MONITORING_SECRET;
+    if (!secret) return res.status(404).json({ success: false, status: 'not_found' }); // fail closed when unconfigured
+    const provided = req.headers['x-monitoring-secret'];
+    if (provided !== secret) {
+      return res.status(403).json({ success: false, status: 'forbidden' });
+    }
+    return next();
+  };
+
   // In-memory metrics (no external deps)
   const metrics = {
     requests: 0,
@@ -157,7 +169,7 @@ module.exports = (pool, redisClient) => {
   /*
    * GET /api/health/detailed - Full health (DB, Redis, memory, CPU)
    */
-  router.get("/detailed", async (req, res) => {
+  router.get("/detailed", requireMonitoringSecret, async (req, res) => {
     incrementRequest();
 
     const startTime = Date.now();
@@ -271,7 +283,7 @@ module.exports = (pool, redisClient) => {
   /*
    * GET /api/health/metrics - Performance metrics
    */
-  router.get("/metrics", (req, res) => {
+  router.get("/metrics", requireMonitoringSecret, (req, res) => {
     incrementRequest();
 
     const uptime = getUptime();
@@ -311,7 +323,7 @@ module.exports = (pool, redisClient) => {
   /*
    * GET /api/health/stats - Quick stats (for dashboards)
    */
-  router.get("/stats", (req, res) => {
+  router.get("/stats", requireMonitoringSecret, (req, res) => {
     incrementRequest();
 
     const mem = getMemoryUsage();

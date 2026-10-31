@@ -1,3 +1,11 @@
 backend/uploads/*
 !backend/uploads/.gitkeep
-backend/private_exports/node_modules
+backend/private_exports/
+node_modules
+
+.env
+.env.*
+!.env.example
+*.log
+*.pem
+*firebase-adminsdk*.json

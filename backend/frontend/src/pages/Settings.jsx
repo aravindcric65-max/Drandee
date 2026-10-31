@@ -498,10 +498,17 @@ function PrivacyCenter({ showToast }) {
 function SecurityCenter({ showToast }) {
   const [sessions, setSessions] = useState([]);
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiCall('/security/sessions').then(res => res.success && setSessions(res.sessions));
-    apiCall('/security/login-history').then(res => res.success && setHistory(res.history));
+    Promise.all([
+      apiCall('/security/sessions'),
+      apiCall('/security/login-history'),
+    ]).then(([sessRes, histRes]) => {
+      if (sessRes.success) setSessions(sessRes.sessions || []);
+      if (histRes.success) setHistory(histRes.history || []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
   const revokeAll = async () => {
@@ -511,6 +518,8 @@ function SecurityCenter({ showToast }) {
       apiCall('/security/sessions').then(r => r.success && setSessions(r.sessions));
     }
   };
+
+  if (loading) return <div style={{color: '#888', padding: 16}}>Loading…</div>;
 
   return (
     <div>

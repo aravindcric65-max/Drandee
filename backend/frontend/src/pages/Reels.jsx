@@ -67,7 +67,7 @@ const Reels = () => {
   } = useContext(UserContext) || {};
 
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const targetPostId = searchParams.get('postId');
 
   /* ── Feed ── */
@@ -223,6 +223,21 @@ const Reels = () => {
       // Try to find the post index and jump directly to it
       const idx = filteredFeed.findIndex(p => String(p.id) === String(targetPostId));
       setCur(idx >= 0 ? idx : 0);
+      if (idx < 0) {
+        // Post not in feed — show brief inline feedback
+        setFeedbackMsg(prev => ({ ...prev, __deeplink__: 'notFound' }));
+        setTimeout(() => setFeedbackMsg(prev => {
+          const n = { ...prev };
+          delete n.__deeplink__;
+          return n;
+        }), 3000);
+      }
+      // Clear param whether found or not — prevents re-jump on remount
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete('postId');
+        return next;
+      }, { replace: true });
     } else if (nextIdx >= 0) {
       // Keep viewer on the same post after feed update
       setCur(nextIdx);
@@ -576,7 +591,21 @@ const Reels = () => {
             <button className="reels-retry-btn" onClick={() => loadFeed(true)}>Retry</button>
           </div>
         ) : (
-          feed.map((p, i) => {
+          <>
+            {feedbackMsg.__deeplink__ === 'notFound' && (
+              <div style={{
+                position: 'absolute', top: '50%', left: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: 'rgba(0,0,0,0.75)', color: '#fff',
+                padding: '12px 20px', borderRadius: 8,
+                fontSize: 14, fontWeight: 600,
+                zIndex: 200, pointerEvents: 'none',
+                animation: 'fadeIn 0.2s'
+              }}>
+                Post not found
+              </div>
+            )}
+            {feed.map((p, i) => {
             const respected = respectedTracker[p.id] !== undefined
               ? respectedTracker[p.id]
               : (p.hasRespected || p.has_respected || user?.respectedVideos?.includes(p.id) || false);
@@ -688,7 +717,8 @@ const Reels = () => {
                 </div>
               </div>
             );
-          })
+          })}
+          </>
         )}
 
         {/* ── Bottom navigation ── */}

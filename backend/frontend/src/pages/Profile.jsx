@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext, useCallback } from "react";
+import { getFollowersList, getFollowingList } from "../api";
 import { UserContext } from "../context/UserContext";
 import DefaultAvatar from "../components/DefaultAvatar";
 import { calculateRank, getRankProgress, getRespectsForNextLevel, formatRespects, LEVELS } from "../utils/badgeSystem";
@@ -305,6 +306,43 @@ const Profile = () => {
 
   /* sheets: null | "edit"|"share"|"qr"|"followers"|"following"|"starred"|"picOpts" */
   const [sheet, setSheet]       = useState(null);
+  const [sheetUsers, setSheetUsers] = useState([]);
+  const [sheetLoading, setSheetLoading] = useState(false);
+  const [sheetError, setSheetError] = useState(null);
+
+  const fetchSheetData = useCallback((type, uid) => {
+    if (type !== "followers" && type !== "following") return;
+    if (!uid) return;
+
+    let active = true;
+    setSheetLoading(true);
+    setSheetError(null);
+
+    const fetchList = type === "followers" ? getFollowersList : getFollowingList;
+    fetchList(uid)
+      .then((users) => {
+        if (!active) return;
+        setSheetUsers(Array.isArray(users) ? users : []);
+        setSheetLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        console.error(`Failed to fetch ${type}:`, err);
+        setSheetError(`Could not load ${type}. Please try again.`);
+        setSheetLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const cancel = fetchSheetData(sheet, targetId);
+    return () => {
+      if (cancel) cancel();
+    };
+  }, [sheet, targetId, fetchSheetData]);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [gridTab, setGridTab]   = useState("posts");
   const lpTimer                  = useRef(null);
@@ -509,15 +547,8 @@ const Profile = () => {
   
   const gridData     = gridTab === "posts" ? imgPosts : gridTab === "reels" ? videoPosts : gridTab === "text" ? textPosts : featPosts;
 
-  /* mock social graph — kept for Star Friends UI only */
-  const mockFollowers = [
-    { id: "u2", name: "Kavitha", bg: "#534AB7", star: true },
-    { id: "u3", name: "Mani",    bg: "#1D7A5F", star: true },
-    { id: "u4", name: "Priya",   bg: "#B74A4A", star: true },
-    { id: "u5", name: "Rajan",   bg: "#7A6B1D", star: false },
-    { id: "u6", name: "Deepika", bg: "#1D5C7A", star: false },
-  ];
-  const starFriends = mockFollowers.filter((f) => f.star);
+  /* Star Friends data from user profile */
+  const starFriends = Array.isArray(displayUser?.starFriends) ? displayUser.starFriends : [];
 
   if (!isOwn && crPosts.length === 0) {
     return (
@@ -689,16 +720,16 @@ const Profile = () => {
             <div style={S.starRow} onClick={() => setSheet("starred")}>
               <div style={{ display: "flex" }}>
                 {starFriends.map((f, i) => (
-                  <div key={f.id} style={{
-                    ...S.sfAv, background: f.bg,
+                  <div key={f.id || i} style={{
+                    ...S.sfAv, background: f.bg || '#6366F1',
                     marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i,
                   }}>
-                    {f.name.charAt(0)}
+                    {f.name ? f.name.charAt(0) : '?'}
                   </div>
                 ))}
               </div>
               <span style={S.sfLabel}>
-                Star friends · {starFriends.slice(0, 2).map((f) => f.name.split(" ")[0]).join(", ")}
+                Star friends · {starFriends.slice(0, 2).map((f) => (f.name || '').split(" ")[0]).join(", ")}
               </span>
               <ChevIco />
             </div>
@@ -1013,37 +1044,44 @@ const Profile = () => {
       {sheet === "followers" && (
         <Ov onClose={() => setSheet(null)}>
           <div style={S.hdl} />
-          <span style={S.shTitle}>Followers · {mockFollowers.length}</span>
+          <span style={S.shTitle}>Followers · {followerCount}</span>
           <div style={S.listWrap}>
-            {mockFollowers.map((f, i) => {
-              const isFollowingBack = i % 2 === 0; // Mock following back state
-              return (
-                <div key={f.id} style={S.uRow}
+            {sheetLoading ? (
+              <div style={{ padding: "32px 20px", textAlign: "center", color: "#888", fontSize: 14 }}>
+                Loading followers...
+              </div>
+            ) : sheetError ? (
+              <div style={{ padding: "32px 20px", textAlign: "center", color: "#e05555", fontSize: 14 }}>
+                <p style={{ margin: 0, marginBottom: 12 }}>{sheetError}</p>
+                <button
+                  type="button"
+                  onClick={() => fetchSheetData("followers", targetId)}
+                  style={{ padding: "6px 16px", background: "#f0f0f0", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: "600" }}
+                >
+                  Retry
+                </button>
+              </div>
+            ) : sheetUsers.length === 0 ? (
+              <div style={{ padding: "32px 20px", textAlign: "center", color: "#888", fontSize: 14 }}>
+                No followers yet
+              </div>
+            ) : (
+              sheetUsers.map((f) => (
+                <div
+                  key={f.id}
+                  style={S.uRow}
                   onClick={() => { setSheet(null); navigate(`/profile/${f.id}`); }}
                   onMouseEnter={(e) => e.currentTarget.style.background = '#f9f9f9'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
-                  <div style={{ ...S.uAv, background: f.bg }}>{f.name.charAt(0)}</div>
+                  <DefaultAvatar size={44} src={f.profilePic || f.profile_pic} name={f.name} />
                   <div style={S.uInfo}>
-                    <span style={S.uName}>
-                      {f.name}
-                      {f.star && <span style={S.starTag}> ★</span>}
-                    </span>
-                    <span style={S.uSub}>@{f.name.toLowerCase().replace(' ', '')}</span>
+                    <span style={S.uName}>{f.name}</span>
+                    <span style={S.uSub}>@{f.username || (f.name ? f.name.toLowerCase().replace(/\s+/g, '') : f.id)}</span>
                   </div>
-                  <button 
-                    onClick={(e) => e.stopPropagation()} 
-                    style={{ 
-                      ...S.followBtn, 
-                      background: isFollowingBack ? '#f0f0f0' : '#6366F1', 
-                      color: isFollowingBack ? '#000' : '#fff' 
-                    }}
-                  >
-                    {isFollowingBack ? 'Following' : 'Follow'}
-                  </button>
                 </div>
-              );
-            })}
+              ))
+            )}
           </div>
         </Ov>
       )}
@@ -1052,29 +1090,44 @@ const Profile = () => {
       {sheet === "following" && (
         <Ov onClose={() => setSheet(null)}>
           <div style={S.hdl} />
-          <span style={S.shTitle}>Following · {mockFollowers.length - 2}</span>
+          <span style={S.shTitle}>Following · {followingCount}</span>
           <div style={S.listWrap}>
-            {mockFollowers.slice(0, 3).map((f, i) => (
-              <div key={f.id} style={S.uRow}
-                onClick={() => { setSheet(null); navigate(`/profile/${f.id}`); }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#f9f9f9'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-              >
-                <div style={{ ...S.uAv, background: f.bg }}>{f.name.charAt(0)}</div>
-                <div style={S.uInfo}>
-                  <span style={S.uName}>{f.name}</span>
-                  <span style={{ ...S.uSub, color: i < 2 ? "#FFD700" : "#666" }}>
-                    {i < 2 ? "★ Star friend · " : ""}@{f.name.toLowerCase().replace(' ', '')}
-                  </span>
-                </div>
-                <button 
-                  onClick={(e) => e.stopPropagation()} 
-                  style={{ ...S.followBtn, background: '#f0f0f0', color: '#000' }}
+            {sheetLoading ? (
+              <div style={{ padding: "32px 20px", textAlign: "center", color: "#888", fontSize: 14 }}>
+                Loading following...
+              </div>
+            ) : sheetError ? (
+              <div style={{ padding: "32px 20px", textAlign: "center", color: "#e05555", fontSize: 14 }}>
+                <p style={{ margin: 0, marginBottom: 12 }}>{sheetError}</p>
+                <button
+                  type="button"
+                  onClick={() => fetchSheetData("following", targetId)}
+                  style={{ padding: "6px 16px", background: "#f0f0f0", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: "600" }}
                 >
-                  Following
+                  Retry
                 </button>
               </div>
-            ))}
+            ) : sheetUsers.length === 0 ? (
+              <div style={{ padding: "32px 20px", textAlign: "center", color: "#888", fontSize: 14 }}>
+                Not following anyone yet
+              </div>
+            ) : (
+              sheetUsers.map((f) => (
+                <div
+                  key={f.id}
+                  style={S.uRow}
+                  onClick={() => { setSheet(null); navigate(`/profile/${f.id}`); }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#f9f9f9'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <DefaultAvatar size={44} src={f.profilePic || f.profile_pic} name={f.name} />
+                  <div style={S.uInfo}>
+                    <span style={S.uName}>{f.name}</span>
+                    <span style={S.uSub}>@{f.username || (f.name ? f.name.toLowerCase().replace(/\s+/g, '') : f.id)}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </Ov>
       )}
@@ -1086,17 +1139,28 @@ const Profile = () => {
           <span style={S.shTitle}>Star friends</span>
           <p style={S.qrSub}>Your top connections — people you interact with most</p>
           <div style={S.listWrap}>
-            {starFriends.map((f, i) => (
-              <div key={f.id} style={S.uRow}
-                onClick={() => { setSheet(null); navigate(`/profile/${f.id}`); }}>
-                <div style={{ ...S.uAv, background: f.bg }}>{f.name.charAt(0)}</div>
-                <div style={S.uInfo}>
-                  <span style={S.uName}>{f.name}</span>
-                  <span style={{ ...S.uSub, color: "#FFD700" }}>★ #{i + 1} Star friend</span>
-                </div>
-                <ChevIco />
+            {starFriends.length === 0 ? (
+              <div style={{ padding: "32px 20px", textAlign: "center", color: "#888", fontSize: 14 }}>
+                No star friends yet
               </div>
-            ))}
+            ) : (
+              starFriends.map((f, i) => (
+                <div
+                  key={f.id || i}
+                  style={S.uRow}
+                  onClick={() => { if (f.id) { setSheet(null); navigate(`/profile/${f.id}`); } }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#f9f9f9'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <DefaultAvatar size={44} src={f.profilePic || f.profile_pic} name={f.name || 'User'} />
+                  <div style={S.uInfo}>
+                    <span style={S.uName}>{f.name || 'Friend'}</span>
+                    <span style={{ ...S.uSub, color: "#FFD700" }}>★ #{i + 1} Star friend</span>
+                  </div>
+                  <ChevIco />
+                </div>
+              ))
+            )}
           </div>
         </Ov>
       )}

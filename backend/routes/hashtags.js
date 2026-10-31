@@ -166,6 +166,31 @@ module.exports = (pool) => {
          JOIN users u ON COALESCE(p.user_id, p.creator_id) = u.id
          WHERE p.is_deleted IS NOT TRUE
            AND (p.moderation_status IS NULL OR p.moderation_status = 'approved')
+           AND (u.account_status IS NULL OR u.account_status = 'ACTIVE')
+           AND NOT EXISTS (
+             SELECT 1 FROM user_blocks ub
+             WHERE ub.blocker_id = $1 AND ub.blocked_id = u.id
+           )
+           AND NOT EXISTS (
+             SELECT 1 FROM user_blocks ub2
+             WHERE ub2.blocker_id = u.id AND ub2.blocked_id = $1
+           )
+           AND NOT EXISTS (
+             SELECT 1 FROM user_mutes um
+             WHERE um.user_id = $1 AND um.muted_id = u.id
+           )
+           AND NOT EXISTS (
+             SELECT 1 FROM user_mutes um2
+             WHERE um2.user_id = u.id AND um2.muted_id = $1
+           )
+           AND (
+             (p.is_private IS NOT TRUE AND u.is_protected IS NOT TRUE)
+             OR u.id = $1
+             OR EXISTS (
+               SELECT 1 FROM follows f_priv
+               WHERE f_priv.follower_id = $1 AND f_priv.following_id = u.id
+             )
+           )
            AND ${TAG_MATCH}
          GROUP BY u.id, u.username, u.name, u.profile_pic, u.identity_level
          ORDER BY post_count DESC

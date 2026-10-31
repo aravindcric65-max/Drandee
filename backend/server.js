@@ -227,7 +227,7 @@ ensureRedis()
 // Rate Limiting
 // ============================================
 
-app.set('trust proxy', 1);
+// trust proxy already set conditionally above (production-only)
 
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

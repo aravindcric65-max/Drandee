@@ -741,10 +741,10 @@ function determineDistributionEligibility(type, locationContext, visibility) {
 // ═════════════════════════════════════════════════════════
 
 async function generatePresignedUrl(storageKey, mediaType, fileSize) {
-  // If in local dev without S3, return a special local upload URL
+  // If in local dev without S3, return a relative upload URL (never hardcode localhost)
   if (process.env.NODE_ENV !== 'production' && !process.env.AWS_ACCESS_KEY_ID) {
     const sessionId = storageKey.split('_').pop().split('.')[0];
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+    const baseUrl = (process.env.BASE_URL || '').replace(/\/+$/, '');
     return `${baseUrl}/api/upload/local/${sessionId}`;
   }
 
