@@ -44,10 +44,10 @@ const exportsRoutes = require('./routes/exports');
 const healthRoutes = require('./routes/health')(pool, redisClient);
 const searchRoutes = require('./routes/search');
 const hashtagsRoutes = require('./routes/hashtags');
-const abuseRoutes = require('./routes/abuse');
-const adminRoutes = require('./routes/admin');
+const abuseRoutes = require('./routes/abuse')(pool, redisClient);
+const adminRoutes = require('./routes/admin')(pool);
 const aiCaptionRoutes = require('./routes/ai-caption');
-const analyticsRoutes = require('./routes/analytics');
+const analyticsRoutes = require('./routes/analytics')(pool);
 
 const app = express();
 
