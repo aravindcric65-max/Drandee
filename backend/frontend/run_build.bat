@@ -1,1 +1,0 @@
-@echo off\r\ncd /d C:\\Users\\ramku\\OneDrive\\Documents\\Drandee\\backend\\frontend\r\nnpm run build
