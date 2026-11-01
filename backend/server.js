@@ -508,9 +508,9 @@ const seoInterceptor = async (req, res, next) => {
     const isCreator = req.path.startsWith('/creator/');
     const id = req.params.id;
 
-    let indexPath = path.join(__dirname, 'frontend/build/index.html');
+    let indexPath = path.join(__dirname, '../frontend/build/index.html');
     if (!fs.existsSync(indexPath)) {
-      indexPath = path.join(__dirname, 'frontend/public/index.html');
+      indexPath = path.join(__dirname, '../frontend/public/index.html');
     }
     
     if (!fs.existsSync(indexPath)) {
