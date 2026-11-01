@@ -10,7 +10,6 @@
     "dev": "nodemon server.js",
     "create": "node createTables.js",
     "worker": "node worker/index.js",
-    "test:logging": "node scratch/test_phase6_logging.js",
     "loadtest:smoke:feed": "artillery run load-tests/feed.yml -e smoke",
     "loadtest:smoke:events": "artillery run load-tests/events.yml -e smoke",
     "loadtest:smoke:health": "artillery run load-tests/health.yml -e smoke",
@@ -20,7 +19,9 @@
     "loadtest:load:health": "artillery run load-tests/health.yml -e load",
     "loadtest:stress:feed": "artillery run load-tests/feed.yml -e stress",
     "loadtest:stress:events": "artillery run load-tests/events.yml -e stress",
-    "loadtest:stress:health": "artillery run load-tests/health.yml -e stress"
+    "loadtest:stress:health": "artillery run load-tests/health.yml -e stress",
+    "migrate": "node scripts/migrate.js",
+    "test": "node tests/regression_hashtag_creators_privacy.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

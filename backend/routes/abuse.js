@@ -190,7 +190,7 @@ module.exports = (pool, redisClient) => {
         success: true,
         status: {
           user: {
-            isBanned: user?.account_status = 'SUSPENDED' || false,
+            isBanned: user?.account_status === 'SUSPENDED' || false,
             bannedAt: user?.banned_at,
             banReason: user?.ban_reason,
             banExpires: user?.ban_expires_at,

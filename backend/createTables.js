@@ -25,40 +25,18 @@ const pool = new Pool({
 
 const createTables = async () => {
   try {
-    console.log("🔧 Dropping old tables...\n");
-
-    // Drop all tables (in reverse order of dependencies)
-    await pool.query(`DROP TABLE IF EXISTS user_interests CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS content_feedback CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS feed_impressions CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS communities CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS topics CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS post_reports CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS not_interested_posts CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS user_mutes CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS user_blocks CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS feed_experiments CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS saved_posts CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS notifications CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS spotlight_cycles CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS watch_sessions CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS follows CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS shares CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS comments CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS respects CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS posts CASCADE`);
-    await pool.query(`DROP TABLE IF EXISTS users CASCADE`);
-
-    console.log("✅ Old tables dropped");
+    // Idempotent table creation (non-destructive)
 
     console.log("\n🔧 Creating Drandee tables...\n");
 
     // Users table
     await pool.query(`
-      CREATE TABLE users (
+      CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
+        firebase_uid VARCHAR(128) UNIQUE,
+        account_status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
         password TEXT NOT NULL,
         role VARCHAR(50) DEFAULT 'audience',
         city VARCHAR(100),
@@ -98,7 +76,7 @@ const createTables = async () => {
 
     // Posts table
     await pool.query(`
-      CREATE TABLE posts (
+      CREATE TABLE IF NOT EXISTS posts (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         creator_id INTEGER,
@@ -138,7 +116,7 @@ const createTables = async () => {
 
     // Respects table
     await pool.query(`
-      CREATE TABLE respects (
+      CREATE TABLE IF NOT EXISTS respects (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
@@ -150,7 +128,7 @@ const createTables = async () => {
 
     // Comments table
     await pool.query(`
-      CREATE TABLE comments (
+      CREATE TABLE IF NOT EXISTS comments (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
@@ -164,7 +142,7 @@ const createTables = async () => {
 
     // Shares table
     await pool.query(`
-      CREATE TABLE shares (
+      CREATE TABLE IF NOT EXISTS shares (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
@@ -176,7 +154,7 @@ const createTables = async () => {
 
     // Follows table
     await pool.query(`
-      CREATE TABLE follows (
+      CREATE TABLE IF NOT EXISTS follows (
         id SERIAL PRIMARY KEY,
         follower_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         following_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -188,7 +166,7 @@ const createTables = async () => {
 
     // Watch sessions table
     await pool.query(`
-      CREATE TABLE watch_sessions (
+      CREATE TABLE IF NOT EXISTS watch_sessions (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
@@ -206,7 +184,7 @@ const createTables = async () => {
 
     // Spotlight cycles table
     await pool.query(`
-      CREATE TABLE spotlight_cycles (
+      CREATE TABLE IF NOT EXISTS spotlight_cycles (
         id SERIAL PRIMARY KEY,
         level VARCHAR(20) UNIQUE NOT NULL,
         last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -216,7 +194,7 @@ const createTables = async () => {
 
     // Notifications table
     await pool.query(`
-      CREATE TABLE notifications (
+      CREATE TABLE IF NOT EXISTS notifications (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         message TEXT NOT NULL,
@@ -228,7 +206,7 @@ const createTables = async () => {
 
     // Saved posts table
     await pool.query(`
-      CREATE TABLE saved_posts (
+      CREATE TABLE IF NOT EXISTS saved_posts (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
@@ -240,7 +218,7 @@ const createTables = async () => {
 
     // Feed experiments table
     await pool.query(`
-      CREATE TABLE feed_experiments (
+      CREATE TABLE IF NOT EXISTS feed_experiments (
         user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
         variant VARCHAR(20) NOT NULL DEFAULT 'control',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -250,7 +228,7 @@ const createTables = async () => {
 
     // User blocks table
     await pool.query(`
-      CREATE TABLE user_blocks (
+      CREATE TABLE IF NOT EXISTS user_blocks (
         id SERIAL PRIMARY KEY,
         blocker_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         blocked_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -262,7 +240,7 @@ const createTables = async () => {
 
     // User mutes table
     await pool.query(`
-      CREATE TABLE user_mutes (
+      CREATE TABLE IF NOT EXISTS user_mutes (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         muted_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -274,7 +252,7 @@ const createTables = async () => {
 
     // Not interested posts table
     await pool.query(`
-      CREATE TABLE not_interested_posts (
+      CREATE TABLE IF NOT EXISTS not_interested_posts (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
@@ -286,7 +264,7 @@ const createTables = async () => {
 
     // Post reports table
     await pool.query(`
-      CREATE TABLE post_reports (
+      CREATE TABLE IF NOT EXISTS post_reports (
         id SERIAL PRIMARY KEY,
         reporter_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
@@ -411,43 +389,43 @@ const createTables = async () => {
     `);
 
     await pool.query(`
-      CREATE INDEX posts_user_id_idx ON posts (user_id)
+      CREATE INDEX IF NOT EXISTS posts_user_id_idx ON posts (user_id)
     `);
 
     await pool.query(`
-      CREATE INDEX posts_creator_id_idx ON posts (creator_id)
+      CREATE INDEX IF NOT EXISTS posts_creator_id_idx ON posts (creator_id)
     `);
 
     await pool.query(`
-      CREATE INDEX comments_post_id_idx ON comments (post_id)
+      CREATE INDEX IF NOT EXISTS comments_post_id_idx ON comments (post_id)
     `);
 
     await pool.query(`
-      CREATE INDEX shares_post_id_idx ON shares (post_id)
+      CREATE INDEX IF NOT EXISTS shares_post_id_idx ON shares (post_id)
     `);
 
     await pool.query(`
-      CREATE INDEX respects_post_id_idx ON respects (post_id)
+      CREATE INDEX IF NOT EXISTS respects_post_id_idx ON respects (post_id)
     `);
 
     await pool.query(`
-      CREATE INDEX user_blocks_blocker_idx ON user_blocks (blocker_id)
+      CREATE INDEX IF NOT EXISTS user_blocks_blocker_idx ON user_blocks (blocker_id)
     `);
 
     await pool.query(`
-      CREATE INDEX user_mutes_user_idx ON user_mutes (user_id)
+      CREATE INDEX IF NOT EXISTS user_mutes_user_idx ON user_mutes (user_id)
     `);
 
     await pool.query(`
-      CREATE INDEX not_interested_user_idx ON not_interested_posts (user_id)
+      CREATE INDEX IF NOT EXISTS not_interested_user_idx ON not_interested_posts (user_id)
     `);
 
     await pool.query(`
-      CREATE INDEX post_reports_post_idx ON post_reports (post_id)
+      CREATE INDEX IF NOT EXISTS post_reports_post_idx ON post_reports (post_id)
     `);
 
     await pool.query(`
-      CREATE INDEX posts_moderation_idx ON posts (is_deleted, moderation_status)
+      CREATE INDEX IF NOT EXISTS posts_moderation_idx ON posts (is_deleted, moderation_status)
     `);
 
     console.log("✅ Indexes created");
