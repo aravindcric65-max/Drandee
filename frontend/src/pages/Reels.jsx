@@ -222,22 +222,30 @@ const Reels = () => {
     if (targetPostId) {
       // Try to find the post index and jump directly to it
       const idx = filteredFeed.findIndex(p => String(p.id) === String(targetPostId));
-      setCur(idx >= 0 ? idx : 0);
-      if (idx < 0) {
-        // Post not in feed — show brief inline feedback
+      if (idx >= 0) {
+        setCur(idx);
+        // Clear param — found and opened, prevents re-jump on remount
+        setSearchParams(prev => {
+          const next = new URLSearchParams(prev);
+          next.delete('postId');
+          return next;
+        }, { replace: true });
+      } else if (!feedLoading && filteredFeed.length > 0) {
+        // Feed has loaded but post not found — show feedback and clear param
+        setCur(0);
         setFeedbackMsg(prev => ({ ...prev, __deeplink__: 'notFound' }));
         setTimeout(() => setFeedbackMsg(prev => {
           const n = { ...prev };
           delete n.__deeplink__;
           return n;
         }), 3000);
+        setSearchParams(prev => {
+          const next = new URLSearchParams(prev);
+          next.delete('postId');
+          return next;
+        }, { replace: true });
       }
-      // Clear param whether found or not — prevents re-jump on remount
-      setSearchParams(prev => {
-        const next = new URLSearchParams(prev);
-        next.delete('postId');
-        return next;
-      }, { replace: true });
+      // If feedLoading or filteredFeed is empty, keep the param and wait for next render
     } else if (nextIdx >= 0) {
       // Keep viewer on the same post after feed update
       setCur(nextIdx);

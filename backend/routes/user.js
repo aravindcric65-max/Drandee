@@ -135,6 +135,7 @@ module.exports = (pool, velocityTracker = null) => {
       
       if (username) {
         updateFields.push(`username = $${valIdx++}`);
+        updateFields.push(`username_set = true`);
         values.push(username);
       }
       if (interests !== undefined) {
@@ -907,6 +908,7 @@ module.exports = (pool, velocityTracker = null) => {
         u.total_watch_time || 0
       ),
       onboardingCompleted: Boolean(u.onboarding_completed),
+      usernameSet: Boolean(u.username_set),
       interests: parseJsonArray(u.interests)
     };
   }

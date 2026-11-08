@@ -48,6 +48,7 @@ const abuseRoutes = require('./routes/abuse')(pool, redisClient);
 const adminRoutes = require('./routes/admin')(pool);
 const aiCaptionRoutes = require('./routes/ai-caption');
 const analyticsRoutes = require('./routes/analytics')(pool);
+const sharePreviewRoutes = require('./routes/sharePreview')(pool);
 
 const app = express();
 
@@ -225,6 +226,13 @@ app.get('/', (req, res) => {
 });
 
 // ============================================
+// Share Preview (public, no auth) — /v/:id
+// Serves crawler-friendly HTML with OG + Twitter metadata.
+// Real browsers are redirected to /reels?postId=<id>.
+// ============================================
+app.use('/v', sharePreviewRoutes);
+
+// ============================================
 // SEO / Social Preview Interceptor
 // ============================================
 const seoInterceptor = async (req, res, next) => {
@@ -315,7 +323,21 @@ const seoInterceptor = async (req, res, next) => {
   }
 };
 
-app.get('/reel/:id', seoInterceptor);
+// Backward compatibility: /reel/:id and /post/:id redirect to /v/:id
+app.get('/reel/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (Number.isInteger(id) && id > 0) {
+    return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.app'}/v/${id}`);
+  }
+  return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.app'}/feed`);
+});
+app.get('/post/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (Number.isInteger(id) && id > 0) {
+    return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.app'}/v/${id}`);
+  }
+  return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.app'}/feed`);
+});
 app.get('/creator/:id', seoInterceptor);
 
 // ============================================

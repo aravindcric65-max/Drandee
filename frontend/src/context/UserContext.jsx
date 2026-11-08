@@ -658,36 +658,60 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // Session-level dedup: prevents stale-closure false negatives when
+  // markWatched is called multiple times before the setUser flush settles.
+  const watchedThisSession = React.useRef(new Set());
+
   const markWatched = async (postId) => {
     if (!postId) return;
+    // Ref-based dedup is reliable; the user.watchedPosts check is a
+    // secondary guard for cross-session persistence via localStorage.
+    if (watchedThisSession.current.has(postId)) return;
     if ((user?.watchedPosts || []).includes(postId)) return;
-    setUser((prev) => ({
-      ...prev,
-      watchedPosts: [...(prev.watchedPosts || []), postId],
-    }));
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId
-          ? { ...p, watchCount: (p.watchCount || 0) + 1 }
-          : p
-      )
-    );
-    try {
-      // Feed algorithm signal — keep
-      fetch('/api/home/impression', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postId, action: 'view' }),
-      }).catch(() => {});
 
-      // View count — updates posts.watch_count on first unique watch
-      fetch('/api/watch/track', {
+    // Mark immediately so concurrent calls from the same render cycle
+    // are blocked before the async work begins.
+    watchedThisSession.current.add(postId);
+
+    // Feed algorithm signal — fire-and-forget, no view-count impact
+    fetch('/api/home/impression', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId, action: 'view' }),
+    }).catch(() => {});
+
+    try {
+      // Await the track call so we only increment the local count if
+      // the server actually counted it (not own-view, not duplicate).
+      const res = await fetch('/api/watch/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ post_id: postId, watch_time: 0 }),
-      }).catch(() => {});
+      });
+
+      const data = res.ok ? await res.json() : null;
+      const serverCounted = data?.counted === true;
+
+      // Always record in watchedPosts so it persists across mounts
+      setUser((prev) => ({
+        ...prev,
+        watchedPosts: [...(prev.watchedPosts || []), postId],
+      }));
+
+      // Only increment local count if server actually counted this view
+      if (serverCounted) {
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === postId
+              ? { ...p, watchCount: (p.watchCount || 0) + 1 }
+              : p
+          )
+        );
+      }
     } catch (err) {
-      // Both fire-and-forget
+      // Network failure — dedup entry stays in ref so we don't retry
+      // indefinitely, but remove from watchedPosts so a page reload can retry.
+      watchedThisSession.current.delete(postId);
     }
   };
 

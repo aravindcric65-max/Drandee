@@ -47,7 +47,10 @@ export default function Login() {
     // so we can await completion before navigating (avoids race with ProtectedRoute).
     const result = await syncWithBackend(firebaseUser);
     if (!result) throw new Error('Server sync failed. Please try again.');
-    navigate('/feed', { replace: true });
+    // Check for preserved redirect target from ProtectedRoute
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next');
+    navigate(next || '/feed', { replace: true });
   }, [navigate, syncWithBackend]);
 
   useEffect(() => {

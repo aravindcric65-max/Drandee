@@ -25,7 +25,9 @@ const interestsList = [
 const OnboardingFlow = ({ onComplete }) => {
   const { user, updateUser } = useUser();
   const navigate = useNavigate();
-  const [step, setStep] = useState(!user?.onboardingCompleted && !user?.username ? "username" : "interests");
+  // Show username step if onboarding is not complete AND user hasn't explicitly
+  // set a username yet (auto-generated usernames have usernameSet === false).
+  const [step, setStep] = useState(!user?.onboardingCompleted && !user?.usernameSet ? "username" : "interests");
   
   // Username state
   const [usernameInput, setUsernameInput] = useState('');

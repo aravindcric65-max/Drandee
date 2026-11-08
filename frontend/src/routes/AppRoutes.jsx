@@ -50,6 +50,7 @@ class RouteErrorBoundary extends React.Component {
 const ProtectedRoute = ({ children }) => {
   const { user, loading, backendSyncStatus, backendSyncError, retryBackendSync } = useAuth();
   const { user: backendUser } = useContext(UserContext) || {};
+  const location = useLocation();
   
   // 1. Firebase auth still initializing
   if (loading) {
@@ -60,9 +61,10 @@ const ProtectedRoute = ({ children }) => {
     );
   }
   
-  // 2. Not signed in → login
+  // 2. Not signed in → login (preserve the intended destination)
   if (!user) {
-    return <Navigate to="/login" replace />;
+    const redirectPath = `${location.pathname}${location.search}`;
+    return <Navigate to={`/login?next=${encodeURIComponent(redirectPath)}`} replace />;
   }
 
   // 3. Backend sync in progress — show spinner, NOT a login redirect
