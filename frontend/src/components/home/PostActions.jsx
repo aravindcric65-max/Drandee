@@ -114,7 +114,7 @@ export const PostActions = ({
   }, []);
 
   const actionStyle = useMemo(() => 
-    "flex items-center gap-1.5 transition-colors duration-200 group rounded-xl hover:bg-[#7F77DD]/10 py-2 px-2.5 focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/30 focus:ring-inset"
+    "flex items-center gap-1.5 transition-colors duration-[150ms] group rounded-xl hover:bg-[#7F77DD]/10 py-2 px-2.5 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/30 focus:ring-inset"
   , []);
 
   const formatCount = useMemo(() => (count) => {
@@ -146,7 +146,7 @@ export const PostActions = ({
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-black/5 group-hover:bg-[#7F77DD]/15 transition-colors">
             <EyeIcon w={18} />
           </div>
-          <span className="text-[12px] sm:text-[13px] font-medium text-[#555555] transition-colors group-hover:text-[#111111]">
+          <span className="text-[length:var(--text-caption)] font-medium text-[var(--text-secondary)] transition-colors group-hover:text-[var(--text-primary)]">
             {formatCount(stats.views || 0)}
           </span>
         </motion.button>
@@ -165,8 +165,8 @@ export const PostActions = ({
             <RespectIcon active={hasRespected} />
           </div>
           {(!post.privacy?.hideRespectCount) && (
-            <span className={`text-[12px] sm:text-[13px] font-semibold ${
-            hasRespected ? 'text-[#FF3B30]' : 'text-[#555555]'
+            <span className={`text-[length:var(--text-caption)] font-semibold ${
+            hasRespected ? 'text-error' : 'text-[var(--text-secondary)]'
             }`}>
               {formatCount(respects)}
             </span>
@@ -184,7 +184,7 @@ export const PostActions = ({
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-black/5 group-hover:bg-[#7F77DD]/15 transition-colors">
             <CommentIcon />
           </div>
-          <span className="text-[12px] sm:text-[13px] font-semibold text-[#555555] transition-colors group-hover:text-[#111111]">
+          <span className="text-[length:var(--text-caption)] font-semibold text-[var(--text-secondary)] transition-colors group-hover:text-[var(--text-primary)]">
             {formatCount(commentCount)}
           </span>
         </motion.button>
@@ -201,7 +201,7 @@ export const PostActions = ({
             <ShareIcon />
           </div>
           {(!post.privacy?.hideShareCount) && (
-            <span className="text-[12px] sm:text-[13px] font-semibold text-[#555555] transition-colors group-hover:text-[#111111]">
+            <span className="text-[length:var(--text-caption)] font-semibold text-[var(--text-secondary)] transition-colors group-hover:text-[var(--text-primary)]">
               {formatCount(stats.shares)}
             </span>
           )}
@@ -219,9 +219,9 @@ export const PostActions = ({
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-black/5 group-hover:bg-[#7F77DD]/15 transition-colors">
             <BookmarkIcon active={hasSaved} />
           </div>
-          <span className={`text-[12px] sm:text-[13px] font-semibold ${
-            hasSaved ? 'text-[#AFA9EC]' : 'text-[#555555]'
-          } transition-colors group-hover:text-[#111111]`}>
+          <span className={`text-[length:var(--text-caption)] font-semibold ${
+            hasSaved ? 'text-secondary' : 'text-[var(--text-secondary)]'
+          } transition-colors group-hover:text-[var(--text-primary)]`}>
             {formatCount(saves)}
           </span>
         </motion.button>
@@ -232,7 +232,7 @@ export const PostActions = ({
         whileTap={{ scale: 0.95 }}
         onClick={() => onMore && onMore(post.id, post.creator?.id)}
         onKeyDown={(e) => handleKeyDown(e, () => onMore && onMore(post.id, post.creator?.id))}
-        className="p-2 sm:p-2.5 rounded-full text-[#555555] hover:text-[#7F77DD] hover:bg-[#7F77DD]/10 transition-colors focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/30"
+        className="p-2 sm:p-2.5 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center text-[var(--text-secondary)] hover:text-[#7F77DD] hover:bg-[#7F77DD]/10 transition-colors duration-[150ms] focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/30"
         aria-label="More options"
       >
         <MoreIcon />

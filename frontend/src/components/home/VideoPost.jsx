@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Volume2, VolumeX, Play } from 'lucide-react';
+import { Volume2, VolumeX, Play, Pause } from 'lucide-react';
 import { FeedCreatorHeader } from './FeedCreatorHeader';
 import { PostActions } from './PostActions';
 import { PostInfo } from './PostInfo';
@@ -15,6 +15,7 @@ export const VideoPost = ({ post, isActive, index, interactionProps }) => {
   const [bursts, setBursts] = useState([]);
   const lastTapRef = useRef(0);
   const firedEvents = useRef(new Set());
+  const clickTimerRef = useRef(null);
 
   const videoUrl = useMemo(() => {
     return post.content?.videoUrl || post.videoUrl;
@@ -60,6 +61,10 @@ export const VideoPost = ({ post, isActive, index, interactionProps }) => {
         videoRef.current.pause();
         videoRef.current = null;
       }
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
       firedEvents.current = null;
     };
   }, []);
@@ -79,6 +84,12 @@ export const VideoPost = ({ post, isActive, index, interactionProps }) => {
   const handleDoubleClick = useCallback((e) => {
     e.stopPropagation();
     e.preventDefault();
+    
+    // Cancel any pending single-click (viewer open) timer
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
     
     const now = Date.now();
     if (now - lastTapRef.current < 500) return; // Debounce duplicate events
@@ -195,11 +206,22 @@ export const VideoPost = ({ post, isActive, index, interactionProps }) => {
       <div 
         className="relative w-full max-h-[75vh] min-h-[300px] bg-black/40 border border-white/5 rounded-[20px] overflow-hidden flex items-center justify-center group cursor-pointer mt-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
         onDoubleClick={handleDoubleClick}
-        onClick={togglePlay}
+        onClick={() => {
+          if (clickTimerRef.current) {
+            // Second click within delay window — this is a double-click
+            clearTimeout(clickTimerRef.current);
+            clickTimerRef.current = null;
+            return;
+          }
+          clickTimerRef.current = setTimeout(() => {
+            clickTimerRef.current = null;
+            interactionProps?.onViewPost?.(post.id, post);
+          }, 250);
+        }}
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="button"
-        aria-label={isPlaying ? 'Pause video' : 'Play video'}
+        aria-label={`View video post by ${post.creator?.displayName || 'user'}`}
       >
         {!videoError ? (
           <video
@@ -276,10 +298,19 @@ export const VideoPost = ({ post, isActive, index, interactionProps }) => {
           ))}
         </AnimatePresence>
 
+        {/* Play/Pause Toggle */}
+        <button 
+          onClick={togglePlay}
+          className="absolute bottom-3 left-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white z-20 hover:bg-black/80 transition-colors focus:outline-none focus:ring-2 focus:ring-white/30"
+          aria-label={isPlaying ? 'Pause video' : 'Play video'}
+        >
+          {isPlaying ? <Pause size={16} /> : <Play size={16} fill="white" />}
+        </button>
+
         {/* Mute Toggle */}
         <button 
           onClick={toggleMute}
-          className="absolute bottom-3 left-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white z-20 hover:bg-black/80 transition-colors focus:outline-none focus:ring-2 focus:ring-white/30"
+          className="absolute bottom-3 left-12 sm:left-14 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white z-20 hover:bg-black/80 transition-colors focus:outline-none focus:ring-2 focus:ring-white/30"
           aria-label={isMuted ? 'Unmute video' : 'Mute video'}
         >
           {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}

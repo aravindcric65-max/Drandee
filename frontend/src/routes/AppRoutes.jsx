@@ -48,9 +48,10 @@ class RouteErrorBoundary extends React.Component {
 
 // 1. Protected Route
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, backendSyncStatus, backendSyncError, retryBackendSync } = useAuth();
   const { user: backendUser } = useContext(UserContext) || {};
   
+  // 1. Firebase auth still initializing
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
@@ -59,14 +60,44 @@ const ProtectedRoute = ({ children }) => {
     );
   }
   
+  // 2. Not signed in → login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Intercept for onboarding using the backend user
-  if (backendUser && backendUser.onboardingCompleted === false) {
-    // If onboarding is not completed, we render the flow. 
-    // It will call updateUser which triggers a re-render and bypasses this.
+  // 3. Backend sync in progress — show spinner, NOT a login redirect
+  if (backendSyncStatus === 'idle' || backendSyncStatus === 'syncing') {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
+
+  // 4. Backend sync failed — show retry, NOT a login redirect
+  if (backendSyncStatus === 'error') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#080808] gap-4" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <p className="text-white text-base">
+          {backendSyncError || 'Could not load your profile. Check your connection.'}
+        </p>
+        <button
+          onClick={retryBackendSync}
+          className="px-6 py-3 rounded-xl font-semibold text-white"
+          style={{ background: '#7F77DD' }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  // 5. Sync ready — check onboarding. Use backendUser from AuthContext (freshest)
+  // backendUser from AuthContext is the freshest source; UserContext's backendUser is from localStorage
+  const profileUser = backendUser;
+  const needsOnboarding = profileUser && profileUser.id && !profileUser.onboardingCompleted;
+
+  if (needsOnboarding) {
     return (
       <Suspense fallback={
         <div className="flex items-center justify-center min-h-screen bg-black">
@@ -122,6 +153,7 @@ const AppRoutes = () => {
         <Route path="/reels" element={<RouteErrorBoundary><ProtectedRoute><Reels /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/profile" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/profile/:id" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/u/:username" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/creator/:id" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/search" element={<RouteErrorBoundary><ProtectedRoute><Search /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/notifications" element={<RouteErrorBoundary><ProtectedRoute><Notifications /></ProtectedRoute></RouteErrorBoundary>} />

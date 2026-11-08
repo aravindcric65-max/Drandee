@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import DrandeeLogo from '../brand/DrandeeLogo';
 import { apiGet, apiPost } from '../../api';
@@ -23,6 +24,7 @@ const interestsList = [
 
 const OnboardingFlow = ({ onComplete }) => {
   const { user, updateUser } = useUser();
+  const navigate = useNavigate();
   const [step, setStep] = useState(!user?.onboardingCompleted && !user?.username ? "username" : "interests");
   
   // Username state
@@ -108,8 +110,13 @@ const OnboardingFlow = ({ onComplete }) => {
     try {
       const res = await apiPost('/api/user/onboarding', { interests: selectedInterests }, {});
       if (res.success) {
+        // updateUser merges onboardingCompleted:true into context + localStorage atomically.
+        // ProtectedRoute will re-evaluate and render children once state updates.
         updateUser(res.user);
-        onComplete();
+        // Call onComplete callback if provided, then navigate as fallback.
+        if (typeof onComplete === 'function') onComplete();
+        // Navigate explicitly in case ProtectedRoute re-render hasn't fired yet.
+        navigate('/feed', { replace: true });
       } else {
         setErrorMessage(res.error || 'Something went wrong. Please try again.');
       }
@@ -122,7 +129,7 @@ const OnboardingFlow = ({ onComplete }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-[#0A0A0A] text-white flex flex-col items-center justify-center px-4 py-8 overflow-y-auto">
       <AnimatePresence mode="wait">
         {step === 'username' && (
           <motion.div 
@@ -133,22 +140,24 @@ const OnboardingFlow = ({ onComplete }) => {
             className="w-full max-w-md flex flex-col items-center"
           >
             <DrandeeLogo className="w-16 h-16 mb-6" />
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 text-center">
+            <h1 className="text-[length:var(--text-h1)] sm:text-[length:var(--text-display)] font-bold tracking-[-0.02em] mb-3 text-center">
               Welcome to Drandee
             </h1>
-            <p className="text-gray-400 mb-8 text-center px-4">
+            <p className="text-[#A0A0A8] text-[length:var(--text-body)] leading-[1.6] mb-8 text-center px-4">
               Choose your unique username to get started.
             </p>
 
             <form onSubmit={handleUsernameSubmit} className="w-full relative px-2">
+              <label htmlFor="username-input" className="sr-only">Choose a username</label>
               <div className="relative flex items-center mb-2">
-                <span className="absolute left-4 text-gray-500 font-medium text-lg select-none">@</span>
+                <span className="absolute left-4 text-[#6E6E76] font-medium text-lg select-none">@</span>
                 <input
+                  id="username-input"
                   type="text"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   placeholder="yourname"
-                  className="w-full bg-[#1A1A1A] border-2 border-transparent focus:border-[#00F0FF] rounded-2xl py-4 pl-10 pr-12 text-lg font-medium outline-none transition-all placeholder-gray-600"
+                  className="w-full bg-[#14151A] border-2 border-[#2A2B30] focus:border-[#7F77DD] rounded-[var(--radius-md)] py-4 pl-10 pr-12 text-[length:var(--text-body)] font-medium outline-none transition-[border-color] duration-[150ms] placeholder-[#6E6E76]"
                   autoComplete="off"
                   autoCorrect="off"
                   spellCheck="false"
@@ -158,7 +167,7 @@ const OnboardingFlow = ({ onComplete }) => {
                 {/* Status Indicator */}
                 <div className="absolute right-4 flex items-center justify-center">
                   {usernameStatus === 'checking' && (
-                    <div className="w-5 h-5 border-2 border-gray-500 border-t-[#00F0FF] rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-[#6E6E76] border-t-[#7F77DD] rounded-full animate-spin" />
                   )}
                   {usernameStatus === 'available' && (
                     <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
@@ -172,16 +181,16 @@ const OnboardingFlow = ({ onComplete }) => {
               {/* Status Message */}
               <div className="h-6 px-2 mb-6">
                 {usernameStatus === 'error' || usernameStatus === 'taken' ? (
-                  <p className="text-red-500 text-sm">{errorMessage}</p>
+                  <p className="text-[length:var(--text-caption)] text-[#FF3B30]">{errorMessage}</p>
                 ) : usernameStatus === 'available' ? (
-                  <p className="text-green-500 text-sm">Username is available!</p>
+                  <p className="text-[length:var(--text-caption)] text-[#25D366]">Username is available!</p>
                 ) : null}
               </div>
 
               <button
                 type="submit"
                 disabled={usernameStatus !== 'available' || isSubmitting}
-                className="w-full py-4 rounded-xl font-bold text-lg bg-white text-black disabled:opacity-50 disabled:bg-gray-800 disabled:text-gray-500 transition-all mb-4"
+                className="w-full py-4 min-h-[44px] rounded-[var(--radius-md)] font-semibold text-[length:var(--text-body)] bg-[#7F77DD] text-white hover:bg-[#6A61C9] disabled:opacity-50 disabled:cursor-not-allowed transition-[background] duration-[150ms] mb-4"
               >
                 {isSubmitting ? 'Confirming...' : 'Confirm username'}
               </button>
@@ -190,7 +199,7 @@ const OnboardingFlow = ({ onComplete }) => {
                 type="button"
                 onClick={handleSkipUsername}
                 disabled={isSubmitting}
-                className="w-full py-3 rounded-xl font-medium text-gray-400 hover:text-white transition-colors"
+                className="w-full py-3 min-h-[44px] rounded-[var(--radius-md)] font-medium text-[#A0A0A8] hover:text-white text-[length:var(--text-body)] transition-[color] duration-[150ms]"
               >
                 Skip for now
               </button>
@@ -205,14 +214,14 @@ const OnboardingFlow = ({ onComplete }) => {
             animate={{ opacity: 1, y: 0 }}
             className="w-full max-w-lg flex flex-col items-center"
           >
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 text-center mt-8">
+            <h1 className="text-[length:var(--text-h1)] sm:text-[length:var(--text-display)] font-bold tracking-[-0.02em] mb-3 text-center mt-8">
               What are you into?
             </h1>
-            <p className="text-gray-400 mb-8 text-center px-4">
+            <p className="text-[#A0A0A8] text-[length:var(--text-body)] leading-[1.6] mb-8 text-center px-4">
               Choose your interests to personalize your Drandee experience.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-3 mb-10 w-full px-2">
+            <div className="flex flex-wrap justify-center gap-3 mb-8 w-full px-2">
               {interestsList.map((interest) => {
                 const isSelected = selectedInterests.includes(interest.id);
                 return (
@@ -221,17 +230,17 @@ const OnboardingFlow = ({ onComplete }) => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => toggleInterest(interest.id)}
                     className={`
-                      flex items-center gap-2 px-4 py-3 rounded-full font-medium transition-all
+                      flex items-center gap-2 px-4 py-3 rounded-full font-medium transition-all duration-[150ms]
                       ${isSelected 
-                        ? 'bg-gradient-to-r from-[#00F0FF]/20 to-[#8A2BE2]/20 border border-[#00F0FF] text-white shadow-[0_0_15px_rgba(0,240,255,0.2)]' 
-                        : 'bg-[#1A1A1A] border border-transparent text-gray-400 hover:bg-[#2A2A2A] hover:text-white'
+                        ? 'bg-[#7F77DD]/15 border border-[#7F77DD] text-white' 
+                        : 'bg-[#14151A] border border-[#2A2B30] text-[#A0A0A8] hover:bg-[#1A1B20] hover:text-white'
                       }
                     `}
                   >
                     <span>{interest.icon}</span>
                     <span>{interest.label}</span>
                     {isSelected && (
-                      <svg className="w-4 h-4 ml-1 text-[#00F0FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                      <svg className="w-4 h-4 ml-1 text-[#7F77DD]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                     )}
                   </motion.button>
                 );
@@ -242,7 +251,7 @@ const OnboardingFlow = ({ onComplete }) => {
               <button
                 onClick={handleInterestsSubmit}
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-xl font-bold text-lg bg-white text-black disabled:opacity-50 transition-all mb-4"
+                className="w-full py-4 min-h-[44px] rounded-[var(--radius-md)] font-semibold text-[length:var(--text-body)] bg-[#7F77DD] text-white hover:bg-[#6A61C9] disabled:opacity-50 disabled:cursor-not-allowed transition-[background] duration-[150ms]"
               >
                 {isSubmitting ? 'Saving...' : (selectedInterests.length > 0 ? 'Continue' : 'Skip')}
               </button>

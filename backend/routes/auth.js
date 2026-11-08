@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 const { getAuth } = require("../config/firebase");
 const rateLimit = require("express-rate-limit");
 
@@ -103,10 +104,14 @@ router.post("/firebase-login", loginLimiter, async (req, res) => {
         }
       }
       
+      // Firebase users have no password — generate a cryptographically random
+      // placeholder to satisfy the NOT NULL constraint on the password column.
+      const placeholderPassword = crypto.randomBytes(32).toString('hex');
+
       const insertResult = await pool.query(`
-        INSERT INTO users (name, email, username, firebase_uid, role, profile_pic, account_status) 
-        VALUES ($1, $2, $3, $4, 'USER', $5, 'ACTIVE') RETURNING *
-      `, [clientName, email || null, uniqueUsername, uid, clientPic]);
+        INSERT INTO users (name, email, username, firebase_uid, role, profile_pic, account_status, password) 
+        VALUES ($1, $2, $3, $4, 'USER', $5, 'ACTIVE', $6) RETURNING *
+      `, [clientName, email || null, uniqueUsername, uid, clientPic, placeholderPassword]);
       
       const newUser = insertResult.rows[0];
 

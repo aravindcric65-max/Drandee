@@ -28,7 +28,7 @@ const EyeIcon = ({ open }) => open ? (
   </svg>
 );
 
-const BACKEND = '/api/auth/firebase-login';
+
 
 export default function Login() {
   const [email, setEmail]           = useState('');
@@ -40,20 +40,15 @@ export default function Login() {
   const [showPass, setShowPass]     = useState(false);
   const [emailFocus, setEF]         = useState(false);
   const [passFocus, setPF]          = useState(false);
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail, syncWithBackend } = useAuth();
   const navigate = useNavigate();
-  const syncBackend = React.useCallback(async (user) => {
-    const res = await fetch(BACKEND, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', },
-      body: JSON.stringify({ uid: user.uid, email: user.email, displayName: user.displayName, photoURL: user.photoURL }),
-    });
-    if (!res.ok) throw new Error('Server sync failed. Please try again.');
-    const data = await res.json();
-    localStorage.setItem('user', JSON.stringify(data.user));
-    window.dispatchEvent(new Event('user_updated'));
+  const syncBackend = React.useCallback(async (firebaseUser) => {
+    // AuthContext auto-syncs on onAuthStateChanged; here we call it explicitly
+    // so we can await completion before navigating (avoids race with ProtectedRoute).
+    const result = await syncWithBackend(firebaseUser);
+    if (!result) throw new Error('Server sync failed. Please try again.');
     navigate('/feed', { replace: true });
-  }, [navigate]);
+  }, [navigate, syncWithBackend]);
 
   useEffect(() => {
     const checkRedirect = async () => {

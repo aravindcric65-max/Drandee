@@ -56,3 +56,4 @@ USERPROFILE%
 scratch/
 */scratch/
 backup-*/
+.vercel

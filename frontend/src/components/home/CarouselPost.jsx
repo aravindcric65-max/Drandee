@@ -79,7 +79,8 @@ export const CarouselPost = ({ post, isActive, index, interactionProps }) => {
 
       {/* Carousel Content */}
       <div 
-        className="relative w-full h-[60vh] max-h-[750px] min-h-[350px] bg-black rounded-[20px] overflow-hidden group"
+        className="relative w-full h-[60vh] max-h-[750px] min-h-[350px] bg-black rounded-[20px] overflow-hidden group cursor-pointer"
+        onClick={() => interactionProps?.onViewPost?.(post.id, post)}
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="region"

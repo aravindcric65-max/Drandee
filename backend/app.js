@@ -60,7 +60,8 @@ app.set('db', pool);
 // Security Middleware
 // ============================================
 app.disable('x-powered-by');
-if (NODE_ENV === 'production') {
+// Set trust proxy if in production OR if RATE_LIMIT_TRUST_PROXY is explicitly set (e.g. for tunnels/Cloudflare in dev)
+if (NODE_ENV === 'production' || process.env.RATE_LIMIT_TRUST_PROXY === 'true') {
   app.set('trust proxy', 1);
 }
 

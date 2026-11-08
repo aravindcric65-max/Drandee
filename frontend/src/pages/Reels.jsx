@@ -788,11 +788,13 @@ const Reels = () => {
       {/* ================================================================
           SHEET — VIEWS
       ================================================================ */}
-      <ViewersModal 
-        isOpen={!!openViews} 
-        onClose={() => setOpenViews(null)} 
+      <ViewersModal
+        isOpen={!!openViews}
+        onClose={() => setOpenViews(null)}
         postId={openViews}
         dark={true}
+        isOwner={!!openViews && !!user?.id && String(feed.find(p => p.id === openViews)?.creatorId) === String(user.id)}
+        viewCount={feed.find(p => p.id === openViews)?.watchCount ?? feed.find(p => p.id === openViews)?.views ?? 0}
       />
 
       {/* ================================================================

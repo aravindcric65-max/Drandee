@@ -38,11 +38,7 @@ const ProfileHeader = ({
       <div style={{ position: "relative", marginBottom: 14 }}>
         <div style={{ ...S.frameRing, background: FRAME_GRADIENTS[user?.frameStyle || "gradient"] }}>
           <div style={S.picWrap}>
-            {user?.profilePic ? (
-              <img src={user.profilePic} alt={targetName} style={S.picImg} />
-            ) : (
-              <DefaultAvatar size={88} creatorId={targetId} creatorName={targetName} />
-            )}
+            <DefaultAvatar size={88} src={user?.profilePic} creatorId={targetId} creatorName={targetName} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
           </div>
         </div>
         {isOwn && (
@@ -177,28 +173,28 @@ const StarSmIcon = ({ color = "#7F77DD" }) => si("M12 2l3.09 6.26L22 9.27l-5 4.8
 /* ── Styles ── */
 const S = {
   hero: { display: "flex", flexDirection: "column", alignItems: "center", padding: "12px 20px 18px" },
-  frameRing: { padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px rgba(127,119,221,0.25)" },
+  frameRing: { padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--glow-subtle)" },
   picWrap: { width: 90, height: 90, borderRadius: "50%", overflow: "hidden", background: "#111", display: "flex", alignItems: "center", justifyContent: "center" },
   picImg: { width: "100%", height: "100%", objectFit: "cover" },
   picBadge: { position: "absolute", bottom: 2, right: 2, width: 28, height: 28, borderRadius: "50%", background: "#7F77DD", border: "2.5px solid #080808", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
-  name: { fontSize: "20px", fontWeight: "700", color: "#fff", marginBottom: 2, textAlign: "center" },
-  username: { fontSize: "13px", color: "rgba(255,255,255,0.4)", marginBottom: 8 },
-  bio: { fontSize: "13px", color: "rgba(255,255,255,0.7)", textAlign: "center", lineHeight: 1.55, maxWidth: 290, marginBottom: 10 },
-  nicheBadge: { fontSize: "11px", color: "#7F77DD", background: "rgba(127,119,221,0.1)", border: "0.5px solid rgba(127,119,221,0.25)", borderRadius: 20, padding: "4px 14px", marginBottom: 12 },
+  name: { fontSize: "var(--text-h1)", fontWeight: "700", letterSpacing: "-0.02em", color: "#fff", marginBottom: 4, textAlign: "center" },
+  username: { fontSize: "var(--text-body)", color: "rgba(255,255,255,0.45)", marginBottom: 8 },
+  bio: { fontSize: "var(--text-body)", color: "rgba(255,255,255,0.65)", textAlign: "center", lineHeight: 1.6, maxWidth: 290, marginBottom: 12 },
+  nicheBadge: { fontSize: "var(--text-caption)", color: "#7F77DD", background: "rgba(127,119,221,0.1)", border: "0.5px solid rgba(127,119,221,0.25)", borderRadius: 20, padding: "4px 14px", marginBottom: 12 },
   rankBadge: { display: "flex", alignItems: "center", gap: 6, background: "#141414", border: "0.5px solid", borderRadius: 20, padding: "5px 14px", marginBottom: 16 },
-  rankTxt: { fontSize: "12px", fontWeight: "600" },
+  rankTxt: { fontSize: "var(--text-caption)", fontWeight: "600" },
   statsRow: { display: "flex", width: "100%", background: "#0e0e0e", border: "0.5px solid #1e1e1e", borderRadius: 14, overflow: "hidden", marginBottom: 12 },
   stat: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "13px 8px", cursor: "pointer" },
-  statNum: { fontSize: "18px", fontWeight: "700", color: "#fff", lineHeight: 1 },
-  statLbl: { fontSize: "10px", color: "rgba(255,255,255,0.4)", marginTop: 4, letterSpacing: "0.4px", textTransform: "uppercase" },
-  respectBanner: { display: "flex", alignItems: "center", gap: 12, background: "linear-gradient(135deg,#121025 0%,#0a0a0a 100%)", border: "0.5px solid rgba(127,119,221,0.3)", borderRadius: 14, padding: "12px 16px", width: "100%", marginBottom: 14 },
+  statNum: { fontSize: "var(--text-h2)", fontWeight: "700", color: "#fff", lineHeight: 1 },
+  statLbl: { fontSize: "var(--text-caption)", color: "rgba(255,255,255,0.4)", marginTop: 4, letterSpacing: "0.4px", textTransform: "uppercase" },
+  respectBanner: { display: "flex", alignItems: "center", gap: 12, background: "#0e0e16", border: "0.5px solid rgba(127,119,221,0.25)", borderRadius: 14, padding: "12px 16px", width: "100%", marginBottom: 14 },
   respectIcon: { width: 36, height: 36, borderRadius: "50%", background: "rgba(127,119,221,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  respectNum: { fontSize: "20px", fontWeight: "700", color: "#fff" },
-  respectTag: { fontSize: "10px", fontWeight: "700", color: "#7F77DD", textTransform: "uppercase", letterSpacing: "0.5px" },
-  respectLbl: { fontSize: "11px", color: "rgba(255,255,255,0.4)" },
+  respectNum: { fontSize: "var(--text-h2)", fontWeight: "700", color: "#fff" },
+  respectTag: { fontSize: "var(--text-caption)", fontWeight: "700", color: "#7F77DD", textTransform: "uppercase", letterSpacing: "0.5px" },
+  respectLbl: { fontSize: "var(--text-caption)", color: "rgba(255,255,255,0.4)" },
   actions: { display: "flex", gap: 8, width: "100%" },
-  btnPrimary: { flex: 1, height: 44, borderRadius: 12, background: "#7F77DD", border: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: "13px", fontWeight: "700", color: "#fff", cursor: "pointer", transition: "opacity 0.15s" },
-  btnSec: { flex: 1, height: 44, borderRadius: 12, background: "#151515", border: "0.5px solid #252525", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: "13px", fontWeight: "600", color: "#fff", cursor: "pointer" },
+  btnPrimary: { flex: 1, height: 44, borderRadius: "var(--radius-md)", background: "#7F77DD", border: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: "var(--text-body)", fontWeight: "600", color: "#fff", cursor: "pointer", transition: "background var(--transition-fast)" },
+  btnSec: { flex: 1, height: 44, borderRadius: "var(--radius-md)", background: "#151515", border: "0.5px solid #252525", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, fontSize: "var(--text-body)", fontWeight: "600", color: "#fff", cursor: "pointer", transition: "opacity var(--transition-fast)" },
 };
 
 const fmt = (n) => {

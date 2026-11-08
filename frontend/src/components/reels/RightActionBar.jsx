@@ -8,7 +8,7 @@ const fmt = (n) => {
   return String(n);
 };
 
-const ActionBtn = ({ icon, count, active, activeColor, onPress, isRespect }) => {
+const ActionBtn = ({ icon, count, active, activeColor, onPress, isRespect, ariaLabel }) => {
   const [pop, setPop] = useState(false);
   const handle = () => {
     setPop(true);
@@ -28,7 +28,12 @@ const ActionBtn = ({ icon, count, active, activeColor, onPress, isRespect }) => 
 
   return (
     <div 
-      onClick={handle} 
+      onClick={handle}
+      role="button"
+      tabIndex={0}
+      aria-label={ariaLabel}
+      aria-pressed={active}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handle(); } }}
       style={{ 
         display: 'flex', 
         flexDirection: 'column', 
@@ -122,6 +127,7 @@ export const RightActionBar = ({
         activeColor="#FF3B30"
         isRespect
         onPress={onRespect}
+        ariaLabel={respected ? 'Remove respect' : 'Give respect'}
       />
 
       {/* Comment */}
@@ -129,6 +135,7 @@ export const RightActionBar = ({
         icon={<CommentIcon />}
         count={fmt(commentCount)}
         onPress={onComment}
+        ariaLabel="Comment"
       />
 
       {/* Share */}
@@ -136,6 +143,7 @@ export const RightActionBar = ({
         icon={<ShareIcon />}
         count={fmt(shareCount)}
         onPress={onShare}
+        ariaLabel="Share"
       />
 
       {/* Save */}
@@ -145,12 +153,17 @@ export const RightActionBar = ({
         active={saved}
         activeColor="#AFA9EC"
         onPress={onSave}
+        ariaLabel={saved ? 'Remove from saved' : 'Save'}
       />
 
       {/* More / Privacy */}
       <div
         onClick={onMore}
-        style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.08)', transition: 'background 0.2s' }}>
+        role="button"
+        tabIndex={0}
+        aria-label="More options"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onMore(); } }}
+        style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.08)', transition: `background var(--transition-fast)` }}>
         <DotsIcon />
       </div>
     </div>

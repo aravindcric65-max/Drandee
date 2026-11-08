@@ -108,11 +108,40 @@ export const MuteIcon = () => svgI('M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6', 
 export const FlagIcon = () => svgI('M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7', 20, '#e05555');
 export const DownloadIcon = () => svgI('M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3', 20, 'rgba(255,255,255,0.8)');
 export const ShieldIcon = () => svgI('M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', 20, 'rgba(255,255,255,0.8)');
-export const HomeNavIcon = () => svgI('M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10', 22, '#fff');
-export const ReelNavIcon = () => svgI('M15 10l4.553-2.276A1 1 0 0 1 21 8.723v6.554a1 1 0 0 1-1.447.894L15 14M3 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 22, '#fff');
-export const SpotlightNavIcon = () => svgI('M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z', 22, '#fff');
-export const UserNavIcon = () => svgI('M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 22, '#fff');
-export const PlusIcon = () => svgI('M12 5v14M5 12h14', 24, '#000');
+// Nav icons — 24px, 1.75px stroke, outline (inactive) and filled (active) variants
+const navStroke = 'rgba(255,255,255,0.55)';
+const navStrokeActive = '#7F77DD';
+
+export const HomeNavIcon = ({ active }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10" stroke={active ? navStrokeActive : navStroke} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" fill={active ? navStrokeActive : 'none'} fillOpacity={active ? 0.15 : 0} />
+  </svg>
+);
+
+export const ReelNavIcon = ({ active }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <rect x="3" y="6" width="14" height="12" rx="2" stroke={active ? navStrokeActive : navStroke} strokeWidth="1.75" fill={active ? navStrokeActive : 'none'} fillOpacity={active ? 0.15 : 0} />
+    <path d="M15 10l6-3v10l-6-3z" stroke={active ? navStrokeActive : navStroke} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" fill={active ? navStrokeActive : 'none'} fillOpacity={active ? 0.15 : 0} />
+  </svg>
+);
+
+export const SpotlightNavIcon = ({ active }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke={active ? navStrokeActive : navStroke} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" fill={active ? navStrokeActive : 'none'} fillOpacity={active ? 0.15 : 0} />
+  </svg>
+);
+
+export const UserNavIcon = ({ active }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke={active ? navStrokeActive : navStroke} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" fill={active ? navStrokeActive : 'none'} fillOpacity={active ? 0.15 : 0} />
+  </svg>
+);
+
+export const PlusIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
 
 export const WAIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none">

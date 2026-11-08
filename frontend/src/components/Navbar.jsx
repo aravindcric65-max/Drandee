@@ -49,21 +49,38 @@ const Navbar = () => {
 
           if (item.isUpload) {
             return (
-              <div key="upload" className="reels-nav-item" onClick={() => setShowCreateChoice(true)}>
+              <div
+                key="upload"
+                className="reels-nav-item"
+                onClick={() => setShowCreateChoice(true)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowCreateChoice(true); } }}
+                aria-label="Create post"
+              >
                 <div className="reels-upload-btn"><PlusIcon /></div>
               </div>
             );
           }
 
           return (
-            <div key={item.path} className="reels-nav-item" onClick={() => navigate(item.path)}>
-              <div className="reels-nav-icon" style={{ opacity: activeState ? 1 : 0.45, color: activeState ? 'var(--primary)' : 'inherit' }}>
-                {item.icon}
+            <div
+              key={item.path}
+              className="reels-nav-item"
+              onClick={() => navigate(item.path)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(item.path); } }}
+              aria-label={item.label}
+              aria-current={activeState ? 'page' : undefined}
+            >
+              <div className="reels-nav-icon" style={{ opacity: activeState ? 1 : 0.85 }}>
+                {React.cloneElement(item.icon, { active: activeState })}
               </div>
-              <span className="reels-nav-label" style={{ color: activeState ? "var(--primary-light)" : "var(--text-secondary)", fontWeight: activeState ? 600 : 400 }}>
+              <span className="reels-nav-label" style={{ color: activeState ? 'var(--primary)' : 'rgba(255,255,255,0.55)', fontWeight: activeState ? 600 : 500 }}>
                 {item.label}
               </span>
-              {activeState && <div className="reels-nav-dot" style={{ backgroundColor: 'var(--primary)' }} />}
+              {activeState && <div className="reels-nav-dot" />}
             </div>
           );
         })}

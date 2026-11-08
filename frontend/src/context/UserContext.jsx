@@ -769,11 +769,15 @@ export const UserProvider = ({ children }) => {
   };
 
   const updateUser = (data) => {
-    setUser((prevUser) => ({ ...prevUser, ...data }));
-    
-    if (data.id || data.email) {
-      localStorage.setItem("user", JSON.stringify({ ...user, ...data }));
-    }
+    setUser((prevUser) => {
+      const merged = { ...prevUser, ...data };
+      // Write to localStorage inside the functional updater so we always
+      // use the current state — never a stale closure snapshot.
+      if (merged.id || merged.email) {
+        try { localStorage.setItem("user", JSON.stringify(merged)); } catch (_) {}
+      }
+      return merged;
+    });
   };
 
   const logout = async () => {

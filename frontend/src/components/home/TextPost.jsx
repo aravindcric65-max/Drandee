@@ -93,7 +93,8 @@ export const TextPost = ({ post, isActive, index, interactionProps }) => {
       
       {/* Text body container */}
       <div 
-        className="w-full pt-5 sm:pt-6 pb-6 sm:pb-8 flex flex-col items-start justify-center mt-2 px-1"
+        className="w-full pt-5 sm:pt-6 pb-6 sm:pb-8 flex flex-col items-start justify-center mt-2 px-1 cursor-pointer"
+        onClick={() => interactionProps?.onViewPost?.(post.id, post)}
       >
         <div className="w-full flex flex-col gap-3 sm:gap-4">
           <AnimatePresence mode="popLayout">

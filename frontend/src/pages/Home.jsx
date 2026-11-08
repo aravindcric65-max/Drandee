@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useCallback } from 'react';
 import FeedModeTabs from '../components/home/FeedModeTabs';
 import { Feed } from '../components/home/Feed';
 import { MoreMenu } from '../components/home/MoreMenu';
@@ -15,6 +15,7 @@ import AudioPage from '../components/reels/AudioPage';
 import { AnimatePresence, motion } from 'framer-motion';
 import DrandeeLogo from '../components/brand/DrandeeLogo';
 import DrandeeWordmark from '../components/brand/DrandeeWordmark';
+import { ProfileContentViewer } from '../components/profile/ProfileContentViewer';
 
 const FEED_MODES = ['for_you', 'following', 'local'];
 
@@ -29,7 +30,10 @@ const Home = () => {
   const [activeViewsPostId, setActiveViewsPostId] = useState(null);
   const [activeSavePostId, setActiveSavePostId] = useState(null);
   const [activeSharePostId, setActiveSharePostId] = useState(null);
-    const [hiddenPosts, setHiddenPosts] = useState([]);
+  const [activeViewPostId, setActiveViewPostId] = useState(null);
+  const [activeViewPostSnapshot, setActiveViewPostSnapshot] = useState(null);
+  const [allFeedPosts, setAllFeedPosts] = useState([]);
+  const [hiddenPosts, setHiddenPosts] = useState([]);
   
   // Overlays state
   const [activeAudioPost, setActiveAudioPost] = useState(null);
@@ -57,8 +61,19 @@ const Home = () => {
       console.log("Failed to mark not interested", err);
     }
   };
-  
-  
+
+  // Stable callbacks — prevent Feed useEffect re-firing on every Home render
+  const handleViewPost = useCallback((postId, post) => {
+    setActiveViewPostId(postId);
+    setActiveViewPostSnapshot(post || null);
+  }, []);
+  const handlePostsLoaded = useCallback((posts) => {
+    setAllFeedPosts(prev => {
+      const ids = new Set(prev.map(p => p.id));
+      const unique = posts.filter(p => !ids.has(p.id));
+      return unique.length ? [...prev, ...unique] : prev;
+    });
+  }, []);
   
   return (
     <>
@@ -125,6 +140,8 @@ const Home = () => {
                     onSave={(postId) => setActiveSavePostId(postId)}
                     onRespect={giveRespect}
                     hiddenPosts={hiddenPosts}
+                    onViewPost={handleViewPost}
+                    onPostsLoaded={handlePostsLoaded}
                     interactionProps={{
                       onAudioClick: (post) => setActiveAudioPost(post),
                       onTagClick: (tag) => navigate(`/tag/${tag}`),
@@ -170,7 +187,10 @@ const Home = () => {
       <ViewersModal
         isOpen={!!activeViewsPostId}
         onClose={() => setActiveViewsPostId(null)}
-        postId={activeViewsPostId} />
+        postId={activeViewsPostId}
+        isOwner={true}
+        viewCount={0}
+      />
 
         <SaveModal
           isOpen={!!activeSavePostId}
@@ -193,11 +213,18 @@ const Home = () => {
             onClose={() => setActiveAudioPost(null)} 
           />
         )}
-
-
       </AnimatePresence>
 
-      
+      {activeViewPostId && (
+        <ProfileContentViewer
+          posts={allFeedPosts}
+          selectedPostId={activeViewPostId}
+          selectedPostSnapshot={activeViewPostSnapshot}
+          tab="all"
+          onClose={() => { setActiveViewPostId(null); setActiveViewPostSnapshot(null); }}
+          onNavigate={() => {}}
+        />
+      )}
     </>
   );
 };

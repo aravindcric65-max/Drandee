@@ -14,6 +14,7 @@ import { UserContext } from '../../context/UserContext';
 export const ProfileContentViewer = ({
   posts: initialPosts,
   selectedPostId,
+  selectedPostSnapshot = null,
   tab = 'images',
   onClose,
   isOwn,
@@ -34,13 +35,25 @@ export const ProfileContentViewer = ({
   } = useContext(UserContext) || {};
 
   // Maintain local post state so engagement events propagate correctly
-  const [posts, setPosts] = useState(initialPosts || []);
+  // Merge the selected post snapshot as a fallback so the viewer can open
+  // even if the parent's posts array hasn't been populated yet.
+  const [posts, setPosts] = useState(() => {
+    const arr = initialPosts || [];
+    if (selectedPostSnapshot && !arr.some(p => String(p.id) === String(selectedPostSnapshot.id))) {
+      return [selectedPostSnapshot, ...arr];
+    }
+    return arr;
+  });
 
   useEffect(() => {
-    setPosts(initialPosts || []);
+    let arr = initialPosts || [];
+    if (selectedPostSnapshot && !arr.some(p => String(p.id) === String(selectedPostSnapshot.id))) {
+      arr = [selectedPostSnapshot, ...arr];
+    }
+    setPosts(arr);
     // Reset view tracking when posts change
     viewTrackedRef.current = new Set();
-  }, [initialPosts]);
+  }, [initialPosts, selectedPostSnapshot]);
 
   // Subscribe to cross-component engagement events
   useEffect(() => {
@@ -115,7 +128,10 @@ export const ProfileContentViewer = ({
   // Keyboard navigation — ArrowDown/ArrowUp navigate between posts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowDown') {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         const next = currentIndex + 1;
         if (next < viewerPosts.length) {
@@ -133,7 +149,7 @@ export const ProfileContentViewer = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, viewerPosts.length]);
+  }, [currentIndex, viewerPosts.length, onClose]);
 
   // Touch intercept — prevent inner card scroll from consuming cross-boundary swipes
   useEffect(() => {
@@ -207,9 +223,11 @@ export const ProfileContentViewer = ({
 
   if (viewerPosts.length === 0) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-white flex items-center justify-center">
-        <p className="text-black">Post not found</p>
-        <button type="button" onClick={onClose} className="ml-4 text-[#7F77DD]">Close</button>
+      <div className="fixed inset-0 z-[9999] bg-[#080808] flex flex-col items-center justify-center gap-4" style={{ height: '100dvh' }}>
+        <p className="text-white text-base">Post not found</p>
+        <button type="button" onClick={onClose} className="px-6 py-3 rounded-xl font-semibold text-white" style={{ background: '#7F77DD' }}>
+          Close
+        </button>
       </div>
     );
   }
@@ -217,15 +235,16 @@ export const ProfileContentViewer = ({
   return (
     <>
       {/* Main viewer overlay */}
-      <div className="fixed inset-0 z-[9999] bg-white/95 backdrop-blur-xl flex justify-center" style={{ height: '100dvh' }}>
+      <div className="fixed inset-0 z-[9999] bg-[#080808] flex justify-center" style={{ height: '100dvh' }}>
         {/* Back button — pointer-events-none on parent, auto on button */}
         <div className="absolute top-0 left-0 right-0 p-4 flex items-center z-[10000] pt-[max(16px,env(safe-area-inset-top))] pointer-events-none">
           <button
             type="button"
             onClick={onClose}
-            className="p-3 -ml-2 rounded-full bg-black/5 hover:bg-black/10 pointer-events-auto transition-colors focus:outline-none"
+            className="p-3 -ml-2 rounded-full bg-white/10 hover:bg-white/20 pointer-events-auto transition-colors focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Close viewer"
           >
-            <ArrowLeft size={24} color="#111" />
+            <ArrowLeft size={24} color="#fff" />
           </button>
         </div>
 
@@ -245,7 +264,7 @@ export const ProfileContentViewer = ({
                 style={{ height: '100dvh' }}
               >
                 {isVisible ? (
-                  <div className="w-full bg-white rounded-[32px] p-4 sm:p-5 shadow-2xl overflow-y-auto max-h-[85vh] hide-scrollbar border border-[#E8E8EC]">
+                  <div className="w-full bg-[#1a1a1a] rounded-[20px] p-4 sm:p-5 overflow-y-auto max-h-[85vh] hide-scrollbar border border-[#252525]">
                     <FeedItem
                       post={post}
                       isActive={i === currentIndex}

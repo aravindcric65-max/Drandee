@@ -132,7 +132,7 @@ export const BottomSection = ({
           />
         </div>
 
-        <span style={{ fontSize: 14, fontWeight: 600, cursor: 'pointer', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }} onClick={(e) => { e.stopPropagation(); onCreatorClick(post.creatorId); }}>
+        <span style={{ fontSize: 'var(--text-body)', fontWeight: 600, cursor: 'pointer', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }} onClick={(e) => { e.stopPropagation(); onCreatorClick(post.creatorId); }}>
           @{(post.creatorName || `user_${post.creatorId}`).toLowerCase().replace(/\s+/g, '')}
         </span>
 
@@ -154,7 +154,9 @@ export const BottomSection = ({
         {!isSelf && (
           <button
             type="button"
-            style={{ fontSize: 12, fontWeight: 600, border: `1px solid ${following ? 'rgba(255,255,255,0.15)' : '#fff'}`, borderRadius: 14, padding: '4px 12px', cursor: 'pointer', outline: 'none', transition: 'all 0.2s', background: following ? 'rgba(255,255,255,0.08)' : '#fff', color: following ? 'rgba(255,255,255,0.65)' : '#000' }}
+            style={{ fontSize: 'var(--text-caption)', fontWeight: 600, border: `1px solid ${following ? 'rgba(255,255,255,0.15)' : '#fff'}`, borderRadius: 14, padding: '5px 12px', minHeight: 32, cursor: 'pointer', outline: 'none', transition: `all var(--transition-fast)`, background: following ? 'rgba(255,255,255,0.08)' : '#fff', color: following ? 'rgba(255,255,255,0.65)' : '#000' }}
+            aria-label={following ? `Unfollow creator` : `Follow creator`}
+            aria-pressed={following}
             onClick={(e) => { e.stopPropagation(); onFollow(post.creatorId); }}
           >
             {following ? 'Following' : 'Follow'}
@@ -172,11 +174,11 @@ export const BottomSection = ({
         <div style={{ flexShrink: 0, animation: paused ? 'none' : 'spinDisc 3s linear infinite' }}>
           <MusicNoteIcon />
         </div>
-        <span style={{ fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
+        <span style={{ fontSize: 'var(--text-caption)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
           {post.audioName || 'Original Audio'}
         </span>
         {post.audioCreator && (
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', flexShrink: 0 }}>· {post.audioCreator}</span>
+          <span style={{ fontSize: 'var(--text-caption)', color: 'rgba(255,255,255,0.45)', flexShrink: 0 }}>· {post.audioCreator}</span>
         )}
       </div>
 

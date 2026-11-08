@@ -911,5 +911,63 @@ module.exports = (pool, velocityTracker = null) => {
     };
   }
 
+  /*
+   * GET /api/user/username/:username — fetch public profile by username
+   * Used by /u/:username clean URLs
+   */
+  router.get("/username/:username", async (req, res) => {
+    try {
+      const { username } = req.params;
+      if (!username || typeof username !== 'string') {
+        return res.status(400).json({ success: false, error: "Username required" });
+      }
+
+      // Optionally determine requester for block-check (best-effort, no hard fail if no auth)
+      let requesterId = null;
+      try {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+          const { getAuth } = require("../config/firebase");
+          const decoded = await getAuth().verifyIdToken(authHeader.split(" ")[1]);
+          if (decoded?.uid) {
+            const uRes = await pool.query("SELECT id FROM users WHERE firebase_uid = $1 LIMIT 1", [decoded.uid]);
+            if (uRes.rows.length > 0) requesterId = uRes.rows[0].id;
+          }
+        }
+      } catch (_) { /* non-authed request — continue */ }
+
+      // Block check
+      if (requesterId) {
+        const blockCheck = await pool.query(
+          `SELECT 1 FROM user_blocks WHERE (blocker_id = $1 AND blocked_id = (SELECT id FROM users WHERE LOWER(username) = LOWER($2) LIMIT 1)) OR (blocker_id = (SELECT id FROM users WHERE LOWER(username) = LOWER($2) LIMIT 1) AND blocked_id = $1) LIMIT 1`,
+          [requesterId, username]
+        );
+        if (blockCheck.rows.length > 0) {
+          return res.status(404).json({ success: false, error: "User not found" });
+        }
+      }
+
+      const result = await pool.query(
+        `SELECT u.*,
+           (SELECT COUNT(*) FROM follows WHERE following_id = u.id) AS followers_count,
+           (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) AS following_count,
+           (SELECT COALESCE(SUM(p.total_respects),0) FROM posts p WHERE COALESCE(p.user_id, p.creator_id) = u.id AND p.is_deleted = false) AS total_respects
+         FROM users u
+         WHERE LOWER(u.username) = LOWER($1) AND u.account_status != 'BANNED'
+         LIMIT 1`,
+        [username]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, error: "User not found" });
+      }
+
+      return res.json({ success: true, user: formatUser(result.rows[0]) });
+    } catch (err) {
+      console.error("GET /user/username/:username error:", err.message);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  });
+
   return router;
 };

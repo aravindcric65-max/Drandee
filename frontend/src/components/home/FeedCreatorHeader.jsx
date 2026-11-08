@@ -50,8 +50,10 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
   }, [isFollowing, isFollowingPending, creator?.id, onFollow, followUser, unfollowUser]);
 
   const handleNavigateToProfile = useCallback(() => {
-    if (creator?.id || creator?.username) {
-      navigate(`/profile/${creator?.id || creator?.username}`);
+    if (creator?.username) {
+      navigate(`/u/${creator.username}`);
+    } else if (creator?.id) {
+      navigate(`/profile/${creator.id}`);
     }
   }, [navigate, creator?.id, creator?.username]);
 
@@ -98,13 +100,13 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
           src={creator?.avatarUrl || creator?.profile_pic}
           creatorId={creator?.id}
           creatorName={creatorName}
-          className="flex-shrink-0 group-hover:ring-2 group-hover:ring-[#7F77DD]/50 transition-all focus:outline-none"
+          className="flex-shrink-0 group-hover:ring-2 group-hover:ring-[#7F77DD]/50 transition-all duration-[150ms] focus:outline-none"
         />
         
         {/* Name & Username & Follow */}
         <div className="flex flex-col justify-center min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[#111111] font-bold text-[14px] sm:text-[15px] leading-tight tracking-tight truncate max-w-[150px] sm:max-w-none">
+            <span className="text-[var(--text-primary)] font-semibold text-[length:var(--text-body)] leading-tight tracking-[-0.01em] truncate max-w-[150px] sm:max-w-none">
               {creatorName}
             </span>
             {isVerified && (
@@ -121,10 +123,10 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleToggleFollow}
                 disabled={isFollowingPending}
-                className={`ml-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold transition-all focus:outline-none focus:ring-1 focus:ring-[#7F77DD]/50 relative before:absolute before:-inset-2 before:content-[''] ${
+                className={`ml-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold transition-all duration-[150ms] focus:outline-none focus:ring-1 focus:ring-[#7F77DD]/50 relative before:absolute before:-inset-2 before:content-[''] ${
                   isFollowing 
-                    ? 'bg-transparent text-[#666666] border border-[#E8E8EC] hover:bg-black/5' 
-                    : 'bg-[#7F77DD] text-white hover:bg-[#7F77DD]/90'
+                    ? 'bg-transparent text-[var(--text-secondary)] border border-[var(--border)] hover:bg-black/5' 
+                    : 'bg-[#7F77DD] text-white hover:bg-[#6A61C9]'
                 } ${isFollowingPending ? 'opacity-70 cursor-not-allowed' : ''}`}
                 aria-pressed={isFollowing}
                 aria-label={isFollowing ? `Unfollow ${creatorName}` : `Follow ${creatorName}`}
@@ -133,7 +135,7 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
               </motion.button>
             )}
           </div>
-          <div className="text-[#8A8A8F] text-[12px] sm:text-[13px] font-medium mt-0.5 truncate">
+          <div className="text-[var(--text-muted)] text-[length:var(--text-caption)] font-medium mt-0.5 truncate">
             @{creatorUsername} {relativeTime ? `· ${relativeTime}` : ''}
           </div>
         </div>
@@ -148,12 +150,12 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
             aria-label="Local creator"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[10px] sm:text-[11px] font-medium text-[#666666]">Local</span>
+            <span className="text-[length:var(--text-caption)] font-medium text-[var(--text-secondary)]">Local</span>
           </div>
         )}
         {isForYou && (
           <div 
-            className="bg-[#7F77DD]/20 text-[#7F77DD] text-[10px] sm:text-[11px] font-semibold px-2 py-1 rounded-md hidden xs:block"
+            className="bg-[#7F77DD]/15 text-[#7F77DD] text-[length:var(--text-caption)] font-semibold px-2 py-1 rounded-md hidden xs:block"
             aria-label="For you content"
           >
             For You
@@ -173,7 +175,7 @@ export const FeedCreatorHeader = ({ post, onFollow, onMore }) => {
             e.stopPropagation();
             onMore?.(post.id, post.creator?.id);
           }}
-          className="p-1.5 sm:p-2 text-[#8A8A8F] hover:text-[#111111] hover:bg-black/5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/50 relative before:absolute before:-inset-2 before:content-['']"
+          className="p-1.5 sm:p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-black/5 rounded-full transition-colors duration-[150ms] focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/50 relative before:absolute before:-inset-2 before:content-['']"
           aria-label="More options"
         >
           <MoreHorizontal size={18} strokeWidth={2} className="sm:w-5 sm:h-5" />

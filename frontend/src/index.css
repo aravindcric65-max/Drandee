@@ -33,8 +33,38 @@
   --info: #007AFF;
 
   /* Effects */
-  --glow: 0 0 20px rgba(127, 119, 221, 0.3);
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --glow-subtle: 0 0 12px rgba(127, 119, 221, 0.15);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.10);
+
+  /* Type Scale */
+  --text-display: 2rem;
+  --text-h1: 1.5rem;
+  --text-h2: 1.25rem;
+  --text-body: 0.9375rem;
+  --text-caption: 0.75rem;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 250ms ease-out;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+}
+
+/* Dark theme tokens — defined for future use, not yet applied to any component */
+[data-theme="dark"] {
+  --bg-primary: #090A0F;
+  --bg-secondary: #14151A;
+  --bg-tertiary: #1A1B20;
+  --text-primary: #F5F5F7;
+  --text-secondary: #A0A0A8;
+  --text-muted: #6E6E76;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.04);
 }
 
 * {
@@ -53,6 +83,7 @@ body {
   color: var(--text-primary);
   overflow-x: hidden;
   overflow-y: hidden;
+  line-height: 1.6;
 }
 
 html {
@@ -84,7 +115,7 @@ button {
 }
 
 button:focus-visible, a:focus-visible, [tabindex="0"]:focus-visible, [role="button"]:focus-visible {
-  outline: 2px solid #9c27b0;
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -108,11 +139,11 @@ button:focus-visible, a:focus-visible, [tabindex="0"]:focus-visible, [role="butt
 
 /* Shimmer animation */
 @keyframes shimmer {
-  0% { 
-    background-position: -1000px 0; 
+  0% {
+    background-position: -1000px 0;
   }
-  100% { 
-    background-position: 1000px 0; 
+  100% {
+    background-position: 1000px 0;
   }
 }
 
@@ -124,17 +155,17 @@ button:focus-visible, a:focus-visible, [tabindex="0"]:focus-visible, [role="butt
 
 /* Heart pop animation */
 @keyframes heartPop {
-  0% { 
-    transform: scale(0); 
-    opacity: 0; 
+  0% {
+    transform: scale(0);
+    opacity: 0;
   }
-  50% { 
-    transform: scale(1.2); 
-    opacity: 1; 
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
   }
-  100% { 
-    transform: scale(1); 
-    opacity: 0; 
+  100% {
+    transform: scale(1);
+    opacity: 0;
   }
 }
 
@@ -153,4 +184,74 @@ button:focus-visible, a:focus-visible, [tabindex="0"]:focus-visible, [role="butt
 
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Button System ── */
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: var(--text-body);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  min-height: 44px;
+}
+
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: var(--text-body);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  min-height: 44px;
+}
+
+.btn-secondary:hover { background: var(--bg-tertiary); }
+.btn-secondary:active { transform: scale(0.97); }
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: var(--text-body);
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+  min-height: 44px;
+}
+
+.btn-ghost:hover { color: var(--text-primary); background: var(--bg-secondary); }
+.btn-ghost:active { transform: scale(0.97); }
+
+/* ── Card ── */
+
+.card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Reduced Motion — decorative animations only ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer, .heartPop, .pulseGlow, .badgeGlow, .spinDisc {
+    animation: none !important;
+  }
+  * { scroll-behavior: auto !important; }
 }

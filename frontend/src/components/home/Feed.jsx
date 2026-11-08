@@ -23,7 +23,9 @@ export const Feed = ({
   onFollow, 
   onMore,
   hiddenPosts = [],
-  interactionProps
+  interactionProps,
+  onViewPost,
+  onPostsLoaded,
 }) => {
   const { user } = useContext(UserContext) || {};
   const [posts, setPosts] = useState(() => feedCache[mode]?.posts || []);
@@ -266,6 +268,14 @@ export const Feed = ({
     };
   }, [mode, fetchFeed, user?.following]);
 
+  // Notify parent of loaded posts — only when this feed is the active view.
+  // Prevents stale posts from inactive feed modes from polluting the viewer.
+  useEffect(() => {
+    if (onPostsLoaded && isActive) {
+      onPostsLoaded(posts);
+    }
+  }, [posts, onPostsLoaded, isActive]);
+
   // Register refs for observer
   const setRef = useCallback((el, index) => {
     if (el && observerRef.current) {
@@ -360,7 +370,10 @@ export const Feed = ({
                   onSave={onSave}
                   onFollow={onFollow}
                   onMore={onMore}
-                  interactionProps={interactionProps}
+                  interactionProps={{
+                    ...interactionProps,
+                    ...(onViewPost ? { onViewPost } : {}),
+                  }}
                 />
               ) : (
                 <div 

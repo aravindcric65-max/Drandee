@@ -7,38 +7,52 @@ import { getRank } from '../../utils/rankSystem';
 import { getBadge } from '../../utils/badgeSystem';
 import DefaultAvatar from '../DefaultAvatar';
 
-export const ViewersModal = ({ isOpen, onClose, postId, dark = false }) => {
+export const ViewersModal = ({ isOpen, onClose, postId, dark = false, isOwner = false, viewCount = 0 }) => {
   const [viewers, setViewers] = useState([]);
   const [loading, setLoading] = useState(false);
   const { followUser, unfollowUser, user: currentUser } = useContext(UserContext) || {};
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Only call the viewers list API when the current user owns the post.
+    // Non-owners must never trigger a 403 — we simply don't make the request.
+    if (!isOpen || !postId || !isOwner) {
+      setViewers([]);
+      return;
+    }
+
+    let cancelled = false;
+
     const fetchViewers = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/engagement/viewers/${postId}?limit=20`, {
-          });
-        if (res.status === 403 || res.status === 404) {
+        const res = await fetch(`/api/engagement/viewers/${postId}?limit=20`);
+        if (cancelled) return;
+        if (!res.ok) {
           setViewers([]);
-          setLoading(false);
           return;
         }
         const data = await res.json();
-        if (data.success) {
-          setViewers(data.data.viewers || []);
+        if (!cancelled && data.success) {
+          setViewers(data.data?.viewers || []);
         }
       } catch (err) {
-        console.error('Failed to fetch viewers', err);
+        if (!cancelled) setViewers([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    if (isOpen && postId) {
-      fetchViewers();
-    }
-  }, [isOpen, postId]);
+    fetchViewers();
+    return () => { cancelled = true; };
+  }, [isOpen, postId, isOwner]);
+
+  const fmt = (n) => {
+    if (!n) return '0';
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+    return String(n);
+  };
 
   const handleFollowToggle = async (e, targetUserId, isFollowing) => {
     e.stopPropagation();
@@ -53,7 +67,7 @@ export const ViewersModal = ({ isOpen, onClose, postId, dark = false }) => {
         v.id === targetUserId ? { ...v, isFollowing: !isFollowing } : v
       ));
     } catch (error) {
-      console.error('Follow error:', error);
+      // follow toggle failure is non-fatal
     }
   };
 
@@ -87,7 +101,9 @@ export const ViewersModal = ({ isOpen, onClose, postId, dark = false }) => {
             <div className={`flex items-center justify-between px-5 py-3 border-b ${dark ? 'border-[#252525]' : 'border-[#E8E8EC]'}`}>
               <div className="flex items-center gap-2">
                 <Eye size={18} className="text-[#7F77DD]" />
-                <h3 className={`text-lg font-bold ${dark ? 'text-white' : 'text-[#111111]'}`}>Views</h3>
+                <h3 className={`text-lg font-bold ${dark ? 'text-white' : 'text-[#111111]'}`}>
+                  Views{isOwner ? '' : ` · ${fmt(viewCount)}`}
+                </h3>
               </div>
               <button 
                 onClick={onClose}
@@ -99,7 +115,13 @@ export const ViewersModal = ({ isOpen, onClose, postId, dark = false }) => {
 
             {/* Viewers List */}
             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-              {loading ? (
+              {!isOwner ? (
+                <div className={`h-full flex flex-col items-center justify-center gap-3 ${dark ? 'text-white/40' : 'text-[#8A8A8F]'}`}>
+                  <Eye size={40} className="opacity-20" />
+                  <p className="text-sm font-medium">{fmt(viewCount)} {viewCount === 1 ? 'view' : 'views'}</p>
+                  <p className="text-xs opacity-60">Viewer details are only visible to the creator.</p>
+                </div>
+              ) : loading ? (
                 <div className="flex flex-col gap-4">
                   {[1, 2, 3, 4].map(i => (
                     <div key={i} className="flex items-center gap-3 animate-pulse">

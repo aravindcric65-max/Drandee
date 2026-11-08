@@ -24,15 +24,15 @@ export const TopSection = ({ activeTab, onTabChange, onSearch, onViewsClick, cur
         {/* Views */}
         <div
           onClick={onViewsClick}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.85)', background: 'rgba(0,0,0,0.3)', padding: '4px 10px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(4px)', width: 80, justifyContent: 'center', cursor: 'pointer' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-caption)', fontWeight: 600, color: 'rgba(255,255,255,0.85)', background: 'rgba(0,0,0,0.3)', padding: '6px 10px', minHeight: 32, borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(4px)', width: 80, justifyContent: 'center', cursor: 'pointer' }}>
           <EyeIcon w={14} stroke="rgba(255,255,255,0.85)" />
           <span>{fmt(currentPost?.watchCount || currentPost?.views || 0)}</span>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div role="tablist" aria-label="Feed tabs" style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
           {TABS.map(t => (
-            <div key={t.id} onClick={() => onTabChange(t.id)} style={{ fontSize: 16, cursor: 'pointer', position: 'relative', textShadow: '0 1px 4px rgba(0,0,0,0.8)', color: activeTab === t.id ? '#fff' : 'rgba(255,255,255,0.45)', fontWeight: activeTab === t.id ? 600 : 400, transition: 'color 0.2s' }}>
+            <div key={t.id} onClick={() => onTabChange(t.id)} role="tab" tabIndex={activeTab === t.id ? 0 : -1} aria-selected={activeTab === t.id} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTabChange(t.id); } }} style={{ fontSize: 'var(--text-body)', cursor: 'pointer', position: 'relative', textShadow: '0 1px 4px rgba(0,0,0,0.8)', color: activeTab === t.id ? '#fff' : 'rgba(255,255,255,0.45)', fontWeight: activeTab === t.id ? 600 : 400, transition: `color var(--transition-fast)`, minHeight: 44, display: 'flex', alignItems: 'center' }}>
               {t.label}
               {activeTab === t.id && <div style={{ position: 'absolute', bottom: -6, left: '50%', transform: 'translateX(-50%)', width: 12, height: 3, borderRadius: 2, background: '#fff' }} />}
             </div>
@@ -40,7 +40,7 @@ export const TopSection = ({ activeTab, onTabChange, onSearch, onViewsClick, cur
         </div>
 
         {/* Search */}
-        <button type="button" aria-label="Search" onClick={onSearch} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', width: 80, justifyContent: 'flex-end' }}>
+        <button type="button" aria-label="Search" onClick={onSearch} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, minHeight: 44, minWidth: 44, display: 'flex', alignItems: 'center', width: 80, justifyContent: 'flex-end' }}>
           <SearchIcon />
         </button>
       </div>

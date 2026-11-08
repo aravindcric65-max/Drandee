@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FeedCreatorHeader } from './FeedCreatorHeader';
 import { PostActions } from './PostActions';
@@ -9,6 +9,7 @@ export const PhotoPost = ({ post, isActive, index, interactionProps }) => {
   const [bursts, setBursts] = useState([]);
   const lastTapRef = useRef(0);
   const containerRef = useRef(null);
+  const clickTimerRef = useRef(null);
 
   const imageUrl = useMemo(() => {
     return post.content?.imageUrl || post.imageUrl;
@@ -21,6 +22,12 @@ export const PhotoPost = ({ post, isActive, index, interactionProps }) => {
   const handleDoubleClick = useCallback((e) => {
     e.stopPropagation();
     e.preventDefault();
+    
+    // Cancel any pending single-click (viewer open) timer
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
     
     const now = Date.now();
     if (now - lastTapRef.current < 500) return;
@@ -69,6 +76,16 @@ export const PhotoPost = ({ post, isActive, index, interactionProps }) => {
     }
   }, [interactionProps, post.id]);
 
+  // Cleanup click timer on unmount
+  useEffect(() => {
+    return () => {
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+    };
+  }, []);
+
   return (
     <div 
       className="w-full bg-transparent flex flex-col"
@@ -86,6 +103,17 @@ export const PhotoPost = ({ post, isActive, index, interactionProps }) => {
         ref={containerRef}
         className="relative w-full max-h-[75vh] min-h-[300px] bg-black/40 border border-white/5 rounded-[20px] overflow-hidden flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#7F77DD]/50"
         onDoubleClick={handleDoubleClick}
+        onClick={() => {
+          if (clickTimerRef.current) {
+            clearTimeout(clickTimerRef.current);
+            clickTimerRef.current = null;
+            return;
+          }
+          clickTimerRef.current = setTimeout(() => {
+            clickTimerRef.current = null;
+            interactionProps?.onViewPost?.(post.id, post);
+          }, 250);
+        }}
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="button"
