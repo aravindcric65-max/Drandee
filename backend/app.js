@@ -253,8 +253,9 @@ const seoInterceptor = async (req, res, next) => {
     let html = fs.readFileSync(indexPath, 'utf8');
     let title = 'Drandee';
     let description = 'Check out this content on Drandee!';
-    let imageUrl = 'https://drandee.app/logo192.png';
-    let ogUrl = `https://drandee.app${req.path}`;
+    const SEO_BASE = process.env.PUBLIC_BASE_URL || 'https://drandee.vercel.app';
+    let imageUrl = `${SEO_BASE}/logo192.png`;
+    let ogUrl = `${SEO_BASE}${req.path}`;
     let type = isReel ? 'video.other' : 'profile';
 
     if (isReel && !isNaN(id)) {
@@ -267,7 +268,7 @@ const seoInterceptor = async (req, res, next) => {
           const post = postResult.rows[0];
           title = 'Drandee Reel';
           description = post.caption || description;
-          imageUrl = post.image_url || `https://drandee.app/api/reels/${id}/thumbnail`;
+          imageUrl = post.image_url || `${SEO_BASE}/logo192.png`;
         }
       } catch (e) {}
     } else if (isCreator) {
@@ -327,16 +328,16 @@ const seoInterceptor = async (req, res, next) => {
 app.get('/reel/:id', (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (Number.isInteger(id) && id > 0) {
-    return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.app'}/v/${id}`);
+    return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.vercel.app'}/v/${id}`);
   }
-  return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.app'}/feed`);
+  return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.vercel.app'}/feed`);
 });
 app.get('/post/:id', (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (Number.isInteger(id) && id > 0) {
-    return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.app'}/v/${id}`);
+    return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.vercel.app'}/v/${id}`);
   }
-  return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.app'}/feed`);
+  return res.redirect(301, `${process.env.PUBLIC_BASE_URL || 'https://drandee.vercel.app'}/feed`);
 });
 app.get('/creator/:id', seoInterceptor);
 
@@ -344,37 +345,47 @@ app.get('/creator/:id', seoInterceptor);
 // SEO / Robots & Sitemap
 // ============================================
 app.get('/robots.txt', (req, res) => {
+  const BASE = process.env.PUBLIC_BASE_URL || 'https://drandee.vercel.app';
   res.type('text/plain');
   res.setHeader('Cache-Control', 'public, max-age=86400');
-  res.send(`User-agent: *
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /settings/
-Disallow: /private/
-
-Sitemap: https://drandee.app/sitemap.xml
-`);
+  res.send(
+    `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin/\nDisallow: /settings\nDisallow: /login\n\nSitemap: ${BASE}/sitemap.xml\n`
+  );
 });
 
 app.get('/sitemap.xml', async (req, res) => {
   try {
-    const urls = [{ loc: 'https://drandee.app/', changefreq: 'always', priority: '1.0' }];
-    const usersResult = await pool.query('SELECT id, updated_at FROM users WHERE is_protected = false ORDER BY id DESC LIMIT 5000');
+    const BASE = process.env.PUBLIC_BASE_URL || 'https://drandee.vercel.app';
+    const urls = [{ loc: `${BASE}/`, changefreq: 'always', priority: '1.0' }];
+
+    const usersResult = await pool.query(
+      `SELECT username, updated_at FROM users
+       WHERE is_protected = false
+         AND account_status != 'BANNED'
+         AND username IS NOT NULL
+         AND username != ''
+       ORDER BY id DESC
+       LIMIT 5000`
+    );
+
     usersResult.rows.forEach(u => {
       urls.push({
-        loc: `https://drandee.app/creator/${u.id}`,
-        lastmodRaw: u.updated_at ? `<lastmod>${new Date(u.updated_at).toISOString()}</lastmod>` : '',
-        changefreq: 'daily',
-        priority: '0.8',
+        loc: `${BASE}/u/${encodeURIComponent(u.username)}`,
+        lastmod: u.updated_at ? new Date(u.updated_at).toISOString() : null,
+        changefreq: 'weekly',
+        priority: '0.7',
       });
     });
 
-    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
     urls.forEach(u => {
-      xml += `  <url>\n    <loc>${u.loc}</loc>\n`;
-      if (u.lastmodRaw) xml += `    ${u.lastmodRaw}\n`;
-      xml += `    <changefreq>${u.changefreq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>\n`;
+      xml += '  <url>\n';
+      xml += `    <loc>${u.loc}</loc>\n`;
+      if (u.lastmod) xml += `    <lastmod>${u.lastmod}</lastmod>\n`;
+      xml += `    <changefreq>${u.changefreq}</changefreq>\n`;
+      xml += `    <priority>${u.priority}</priority>\n`;
+      xml += '  </url>\n';
     });
     xml += '</urlset>';
 

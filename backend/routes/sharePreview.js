@@ -3,8 +3,9 @@
  * Public share-preview route: GET /v/:id
  *
  * Serves crawler-friendly HTML with Open Graph + Twitter Card metadata
- * for social media link previews. Redirects real browsers to the
- * in-app deep link /reels?postId=<id>.
+ * for social media link previews. No instant redirect — crawlers see full
+ * content. Real browsers get a user-controlled "Open in Drandee" link plus
+ * a referrer-conditional JS redirect.
  *
  * No authentication required (crawlers cannot authenticate).
  * Visibility rules: only public, non-deleted, approved posts from
@@ -16,7 +17,7 @@ const { normalizeMediaUrl } = require('../utils/mediaUrl');
 
 const router = express.Router();
 
-const BASE_URL = process.env.PUBLIC_BASE_URL || 'https://drandee.app';
+const BASE_URL = process.env.PUBLIC_BASE_URL || 'https://drandee.vercel.app';
 
 // ── HTML escaping for attribute and text contexts ──────────────────
 function escapeHtml(str) {
@@ -62,21 +63,23 @@ function pickThumbnail(row) {
 }
 
 // ── Build the full HTML document ────────────────────────────────────
-function buildPreviewHTML({ title, description, imageUrl, ogUrl, ogType, twitterCard, redirectUrl, videoUrl }) {
+function buildPreviewHTML({ title, description, imageUrl, ogUrl, ogType, twitterCard, videoUrl, jsonLd, robots, noscriptContent }) {
   const eTitle = escapeHtml(title);
   const eDesc = escapeHtml(description);
   const eImage = escapeHtml(imageUrl || '');
   const eUrl = escapeHtml(ogUrl);
-  const eRedirect = escapeHtml(redirectUrl);
   const eVideo = videoUrl ? escapeHtml(videoUrl) : null;
+  const robotsContent = robots || 'index,follow';
+  const jsonLdStr = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>${eTitle}</title>
   <meta name="description" content="${eDesc}">
+  <meta name="robots" content="${robotsContent}">
   <link rel="canonical" href="${eUrl}">
   <meta property="og:title" content="${eTitle}">
   <meta property="og:description" content="${eDesc}">
@@ -89,11 +92,32 @@ function buildPreviewHTML({ title, description, imageUrl, ogUrl, ogType, twitter
   <meta name="twitter:title" content="${eTitle}">
   <meta name="twitter:description" content="${eDesc}">
   <meta name="twitter:image" content="${eImage}">
-  <meta http-equiv="refresh" content="0; url=${eRedirect}">
+  ${jsonLdStr ? `<script type="application/ld+json">${jsonLdStr}</script>` : ''}
 </head>
-<body>
-  <script>location.replace("${eRedirect}")</script>
-  <noscript><a href="${eRedirect}">Open in Drandee</a></noscript>
+<body style="background:#080808;color:#fff;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px;box-sizing:border-box">
+  <a href="/" style="text-decoration:none;margin-bottom:24px">
+    <span style="font-size:24px;font-weight:900;color:#fff;letter-spacing:-0.5px">Drandee</span>
+  </a>
+  ${noscriptContent || ''}
+  <a href="${eUrl}" style="margin-top:16px;padding:12px 24px;background:#7F77DD;color:#fff;border-radius:12px;text-decoration:none;font-weight:600;font-size:14px">Open in Drandee</a>
+  <noscript>${noscriptContent || `<p><a href="${eUrl}">${eTitle}</a></p>`}</noscript>
+  <script>
+    // Redirect real browsers to the in-app view only if they came from a share link
+    // (not if they were sent here by a crawler or direct navigation)
+    (function(){
+      var ref = document.referrer;
+      var isShare = ref.includes('facebook') || ref.includes('twitter') || ref.includes('x.com') ||
+                    ref.includes('whatsapp') || ref.includes('telegram') || ref.includes('instagram') ||
+                    ref.includes('t.co') || ref.includes('l.instagram') ||
+                    window.location.search.includes('from=share');
+      if (isShare) {
+        var feedUrl = "${eUrl}".replace('/v/', '/reels?postId=').replace(/\/v\/(\d+)/, function(m,id){ return '/reels?postId='+id; });
+        // Parse the postId from the URL
+        var m = window.location.pathname.match(/^\/v\/(\d+)/);
+        if (m) window.location.replace('/reels?postId=' + m[1]);
+      }
+    })();
+  </script>
 </body>
 </html>`;
 }
@@ -111,8 +135,10 @@ function genericPreview(statusCode) {
     ogUrl: url,
     ogType: 'website',
     twitterCard: 'summary_large_image',
-    redirectUrl: `${BASE_URL}/feed`,
     videoUrl: null,
+    robots: 'noindex,nofollow',
+    jsonLd: null,
+    noscriptContent: `<p>Visit <a href="${url}" style="color:#7F77DD">${url}</a> to explore Drandee.</p>`,
   });
   return { html, statusCode };
 }
@@ -140,7 +166,7 @@ module.exports = (pool) => {
         `SELECT
            p.id, p.caption, p.image_url, p.video_url, p.thumbnail_url,
            p.content_type, p.type, p.is_deleted, p.is_private,
-           p.moderation_status,
+           p.moderation_status, p.created_at,
            u.name AS creator_name, u.username AS creator_username,
            u.is_protected, u.account_status
          FROM posts p
@@ -186,7 +212,6 @@ module.exports = (pool) => {
       const thumbnail = pickThumbnail(row);
       const imageUrl = thumbnail ? (thumbnail.startsWith('http') ? thumbnail : `${BASE_URL}${thumbnail}`) : `${BASE_URL}/logo192.png`;
       const canonicalUrl = `${BASE_URL}/v/${postId}`;
-      const redirectUrl = `${BASE_URL}/reels?postId=${postId}`;
 
       // Determine OG type
       const ct = row.content_type || row.type;
@@ -203,6 +228,32 @@ module.exports = (pool) => {
         }
       }
 
+      // Build JSON-LD structured data
+      const jsonLd = isVideo ? {
+        '@context': 'https://schema.org',
+        '@type': 'VideoObject',
+        'name': title,
+        'description': caption,
+        'thumbnailUrl': imageUrl,
+        'uploadDate': row.created_at ? new Date(row.created_at).toISOString() : undefined,
+        'url': canonicalUrl,
+        ...(videoUrl ? { 'contentUrl': videoUrl } : {}),
+      } : {
+        '@context': 'https://schema.org',
+        '@type': 'SocialMediaPosting',
+        'headline': title,
+        'description': caption,
+        'image': imageUrl,
+        'url': canonicalUrl,
+        'author': {
+          '@type': 'Person',
+          'name': displayName,
+          'url': `${BASE_URL}/u/${encodeURIComponent(row.creator_username || '')}`,
+        },
+      };
+
+      const noscriptContent = `<p style="color:#ccc;text-align:center;max-width:500px">${escapeHtml(caption)}</p><p style="color:#888;font-size:13px;text-align:center">By ${escapeHtml(displayName)} &mdash; <a href="${canonicalUrl}" style="color:#7F77DD">View on Drandee</a></p>`;
+
       const html = buildPreviewHTML({
         title,
         description: caption,
@@ -210,8 +261,10 @@ module.exports = (pool) => {
         ogUrl: canonicalUrl,
         ogType,
         twitterCard,
-        redirectUrl,
         videoUrl,
+        jsonLd,
+        robots: 'index,follow',
+        noscriptContent,
       });
 
       res.status(200);
