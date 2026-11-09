@@ -71,7 +71,7 @@ const QRCode = ({ userId, size = 180 }) => {
 /* ─── ShareProfileModal ─────────────────────────────────── */
 const ShareProfileModal = ({ user, onClose }) => {
   const [copied, setCopied] = useState(false);
-  const profileUrl = `https://drandee.app/u/${user?.username || user?.id || "user"}`;
+  const profileUrl = `https://drandee.vercel.app/u/${user?.username || user?.id || "user"}`;
 
   const copyLink = async () => {
     try {

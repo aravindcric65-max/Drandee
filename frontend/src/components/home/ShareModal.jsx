@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WAIcon, TGIcon, TWIcon, LinkIcon, CheckCircleIcon } from '../reels/ReelsIcons';
+// Using /v/:id canonical URL per seo.js config
 
 export const ShareModal = ({ isOpen, onClose, postId, onShareComplete, dark = false }) => {
   const [copied, setCopied] = useState(false);
@@ -37,7 +38,7 @@ export const ShareModal = ({ isOpen, onClose, postId, onShareComplete, dark = fa
   }, [isOpen]);
 
   const deepLink = useMemo(() => {
-    return `https://drandee.app/post/${postId}`;
+    return `https://drandee.vercel.app/v/${postId}`;
   }, [postId]);
 
   const shareText = useMemo(() => {

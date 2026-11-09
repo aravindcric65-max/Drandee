@@ -29,7 +29,7 @@ const QRView = ({ userId, size = 196 }) => {
   return (
     <div style={{ position: 'relative', width: safeSize, height: safeSize, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <QRCodeSVG 
-        value={userId || "https://drandee.app"} 
+        value={userId || "https://drandee.vercel.app"} 
         size={safeSize} 
         level="H" 
         bgColor="#ffffff" 
@@ -74,9 +74,9 @@ const QRScannerOverlay = ({ onClose, onSuccess }) => {
           { fps: 10, qrbox: { width: 250, height: 250 } },
           (decodedText) => {
             if (hasScanned.current) return; // prevent duplicate callbacks
-            // Validate: accept canonical drandee.app/profile/:id or drandee.app/creator/:id URLs
+            // Validate: accept canonical drandee.app/profile/:id, drandee.app/creator/:id, or drandee.vercel.app/u/:username URLs
             const match = decodedText.match(
-              /^https?:\/\/(?:www\.)?drandee\.app\/(?:profile|creator)\/([a-zA-Z0-9_-]+)$/
+              /^https?:\/\/(?:www\.)?(?:drandee\.app|drandee\.vercel\.app)\/(?:profile|creator|u)\/([a-zA-Z0-9_-]+)$/
             );
             if (match && match[1]) {
               hasScanned.current = true;
@@ -505,7 +505,7 @@ const Profile = () => {
   };
 
   const doShare = async (platform) => {
-    const url  = `https://drandee.app/u/${user?.username || user?.id}`;
+    const url  = `https://drandee.vercel.app/u/${user?.username || user?.id}`;
     const text = `Check out @${user?.username || user?.name} on Drandee!`;
     const map  = {
       whatsapp: `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`,
@@ -687,7 +687,7 @@ const Profile = () => {
                 </button>
                 <button style={{ ...S.actBtn, ...S.actSecondary, flex: "none", padding: "0 14px" }}
                   onClick={() => setSheet("qr")}>
-                  <QRView userId={`https://drandee.app/creator/${user?.id}`} size={24} />
+                  <QRView userId={`https://drandee.vercel.app/u/${user?.username || user?.id}`} size={24} />
                 </button>
               </>
             ) : (
@@ -988,14 +988,14 @@ const Profile = () => {
           </div>
           <button type="button" style={S.cpRow} onClick={() => doShare("copy")}>
             <LinkIco />
-            <span style={S.cpUrl}>drandee.app/u/{user?.username || user?.id}</span>
+            <span style={S.cpUrl}>drandee.vercel.app/u/{user?.username || user?.id}</span>
             <span style={{ ...S.cpBtn, color: copied ? "#1D9E75" : "#6366F1" }}>
               {copied ? "Copied" : "Copy"}
             </span>
           </button>
           <div style={{ display: "flex", justifyContent: "center", padding: "8px 0 12px" }}>
             <button type="button" style={S.qrHintBtn} onClick={() => setSheet("qr")}>
-              <QRView userId={`https://drandee.app/creator/${user?.id}`} size={20} /> <span style={{ marginLeft: 6 }}>Show QR code</span>
+              <QRView userId={`https://drandee.vercel.app/u/${user?.username || user?.id}`} size={20} /> <span style={{ marginLeft: 6 }}>Show QR code</span>
             </button>
           </div>
         </Ov>
@@ -1021,7 +1021,7 @@ const Profile = () => {
           <div style={S.qrWrap}>
             <div className="flex flex-col items-center">
               <DrandeeWordmark className="text-2xl mb-4" showGradient={true} />
-              <QRView userId={`https://drandee.app/creator/${user?.id}`} size={200} />
+              <QRView userId={`https://drandee.vercel.app/u/${user?.username || user?.id}`} size={200} />
               <div style={{marginTop: 12, fontSize: 14, color: '#888', fontWeight: 500}}>Scan to view this profile</div>
             </div>
           </div>
@@ -1035,7 +1035,7 @@ const Profile = () => {
             </div>
           </div>
           <div style={S.qrFoot}>
-            <span style={S.qrFootTxt}>drandee.app/u/{user?.username}</span>
+            <span style={S.qrFootTxt}>drandee.vercel.app/u/{user?.username}</span>
           </div>
         </Ov>
       )}

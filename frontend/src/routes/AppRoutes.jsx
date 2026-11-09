@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useContext } from 'react';
+import React, { Suspense, lazy, useContext, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
@@ -133,6 +133,31 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
+// 3. Semi-public route — renders content logged-out, shows auth prompts on actions
+const PublicProfileRoute = ({ children }) => {
+  // Does NOT redirect to login — allows logged-out viewing
+  // Actions inside the page (follow, respect, comment) will prompt login
+  return children;
+};
+
+// Not-found page — sets noindex so Google doesn't index unknown SPA routes
+const NotFound = () => {
+  useEffect(() => {
+    // Set noindex on unknown SPA routes so Google doesn't index them
+    let meta = document.querySelector('meta[name="robots"]');
+    if (!meta) { meta = document.createElement('meta'); meta.name = 'robots'; document.head.appendChild(meta); }
+    meta.content = 'noindex,nofollow';
+    return () => { meta.content = 'index,follow'; };
+  }, []);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', background: '#080808', color: '#fff', gap: 16, fontFamily: 'Inter, sans-serif' }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700 }}>Page not found</h1>
+      <p style={{ fontSize: 14, color: '#888' }}>The page you're looking for doesn't exist.</p>
+      <a href="/" style={{ color: '#7F77DD', textDecoration: 'underline', fontSize: 14 }}>Go home</a>
+    </div>
+  );
+};
+
 const AppRoutes = () => {
   const location = useLocation();
   
@@ -155,14 +180,14 @@ const AppRoutes = () => {
         <Route path="/reels" element={<RouteErrorBoundary><ProtectedRoute><Reels /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/profile" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/profile/:id" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
-        <Route path="/u/:username" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/u/:username" element={<RouteErrorBoundary><PublicProfileRoute><Profile /></PublicProfileRoute></RouteErrorBoundary>} />
         <Route path="/creator/:id" element={<RouteErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/search" element={<RouteErrorBoundary><ProtectedRoute><Search /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/notifications" element={<RouteErrorBoundary><ProtectedRoute><Notifications /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/settings" element={<RouteErrorBoundary><ProtectedRoute><Settings /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/upload" element={<RouteErrorBoundary><ProtectedRoute><Upload /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/spotlight" element={<RouteErrorBoundary><ProtectedRoute><Spotlight /></ProtectedRoute></RouteErrorBoundary>} />
-        <Route path="/tag/:tag" element={<RouteErrorBoundary><ProtectedRoute><HashtagPage /></ProtectedRoute></RouteErrorBoundary>} />
+        <Route path="/tag/:tag" element={<RouteErrorBoundary><PublicProfileRoute><HashtagPage /></PublicProfileRoute></RouteErrorBoundary>} />
         
         {/* ===== CREATOR ANALYTICS ROUTES ===== */}
         <Route path="/creator/dashboard" element={<RouteErrorBoundary><ProtectedRoute><CreatorDashboard /></ProtectedRoute></RouteErrorBoundary>} />
@@ -170,8 +195,8 @@ const AppRoutes = () => {
         <Route path="/creator/top-posts" element={<RouteErrorBoundary><ProtectedRoute><CreatorTopPosts /></ProtectedRoute></RouteErrorBoundary>} />
         <Route path="/creator/audience" element={<RouteErrorBoundary><ProtectedRoute><CreatorAudience /></ProtectedRoute></RouteErrorBoundary>} />
         
-        {/* ✅ FIXED: Thappana URL adichal /feed-kku pogum */}
-        <Route path="*" element={<Navigate to="/feed" replace />} />
+        {/* 404 — sets noindex so Google doesn't waste crawl budget on SPA routes */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
       </Suspense>
 

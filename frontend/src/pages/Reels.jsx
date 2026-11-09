@@ -428,7 +428,7 @@ const Reels = () => {
      5. SHARE
   ================================================================ */
   const handleShare = async (platform, postId) => {
-    const deepLink = `https://drandee.app/reel/${postId}`;
+    const deepLink = `https://drandee.vercel.app/v/${postId}`;
     const shareText = "Check out this reel on Drandee!";
     // incrementShare is called only AFTER a confirmed share action, not on modal open
     if (platform === "whatsapp") {
@@ -843,7 +843,7 @@ const Reels = () => {
             </div>
             <button type="button" aria-label="Copy link" className="reels-copy-row" onClick={() => handleShare("copy", openShare)}>
               <LinkIcon />
-              <span className="reels-copy-url">drandee.app/reel/{openShare}</span>
+              <span className="reels-copy-url">drandee.vercel.app/v/{openShare}</span>
               <span className="reels-copy-btn" style={{ color: copied ? "#1D9E75" : "#7F77DD" }}>{copied ? "Copied" : "Copy"}</span>
             </button>
           </div>
