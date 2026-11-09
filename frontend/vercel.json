@@ -2,11 +2,31 @@
   "rewrites": [
     {
       "source": "/sitemap.xml",
-      "destination": "/sitemap.xml"
+      "destination": "https://drandee.onrender.com/sitemap.xml"
     },
     {
       "source": "/robots.txt",
-      "destination": "/robots.txt"
+      "destination": "https://drandee.onrender.com/robots.txt"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://drandee.onrender.com/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://drandee.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/v/:id",
+      "destination": "https://drandee.onrender.com/v/:id"
+    },
+    {
+      "source": "/reel/:id",
+      "destination": "https://drandee.onrender.com/reel/:id"
+    },
+    {
+      "source": "/post/:id",
+      "destination": "https://drandee.onrender.com/post/:id"
     },
     {
       "source": "/(.*)",
